@@ -1,5 +1,3 @@
-<title>LMFI: Cours théorie des types homotopiques</title>
-
 <h1>Théorie des types homotopiques</h1>
 
 <h3>Enseignants : Hugo Herbelin et Nicolas Tabareau</h2>
