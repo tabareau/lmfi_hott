@@ -43,7 +43,7 @@ Le cours tentera d'aborder les sujets suivants:
 <li> Complexes de Kan</li>
 </ul>
 
-<a charset="UTF-8" href="http://htmlpreview.github.com/?plan.html">Calendrier indicatif servant de ligne directrice</a>
+<a charset="UTF-8" href="http://htmlpreview.github.com/?https://github.com/tabareau/lmfi_hott/blob/master/plan.html">Calendrier indicatif servant de ligne directrice</a>
 
 <br>
 <br>
