@@ -1,0 +1,485 @@
+\documentclass{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{t1enc}
+
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{color}
+\usepackage{amsmath}
+
+\newcommand{\seqr}[3]
+  {\shortstack{$#2$ \\ \mbox{}\\
+                   \mbox{}\hrulefill\mbox{}\\ \mbox{}\\ $#3$} \; \raisebox{2.5ex}{$\;\mbox{$#1$}$}}
+\newcommand{\Sub}[3]{#1[#3/#2]}
+
+\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\Set}{\mathsf{Set}}
+\newcommand{\Prop}{\mathsf{Prop}}
+
+\newcommand{\refl}[1]{\mathsf{refl}\,{#1}}
+\newcommand{\subst}[2]{\mathsf{subst}\,{#1}\,\mathsf{in}\,{#2}}
+\newcommand{\mkeq}[3]{{#1} =_{#2} {#3}}
+
+\newcommand{\mkprod}[3]{\Pi {#1}\!:\!{#2}.\,{#3}}
+\newcommand{\mklam}[3]{\lambda {#1}\!:\!{#2}.\,{#3}}
+\newcommand{\mkapp}[2]{{#1}\,{#2}}
+\newcommand{\prodsort}[2]{\Pi ({#1},{#2})}
+
+\newcommand{\mksig}[3]{\Sigma {#1}\!:\!{#2}.\,{#3}}
+\newcommand{\mkpair}[2]{\langle{#1},{#2}\rangle}
+\newcommand{\mkfst}[1]{{#1}.1}
+\newcommand{\mksnd}[1]{{#1}.2}
+\newcommand{\sigsort}[2]{\Sigma ({#1},{#2})}
+
+\newcommand{\sortsort}[1]{{\cal S}_{#1}}
+
+\newcommand{\zero}{0}
+\newcommand{\natsucc}[1]{\mathsf{succ}\,{#1}}
+\newcommand{\rec}[5]{\mathsf{rec}\,[\zero\, \mapsto\, #1\,|\,\natsucc{#2}\, \mapsto_{#3}\, {#4}]\,{#5}}
+\newcommand{\nat}{\mathbb{N}}
+\newcommand{\natsort}{l_{\nat}}
+
+\newcommand{\Sone}{\mathbb{S}^1}
+\newcommand{\casesone}[5]
+  {\mathsf{case}\;{#1}\;\mathsf{of}\;{#2}\;\Rightarrow\;{#3}\;|\;{#4}\;\Rightarrow\;{#5}\;\mathsf{end}}
+\newcommand{\base}{\mathsf{base}}
+\newcommand{\loopsone}{\mathsf{loop}}
+\newcommand{\Sonesort}{l_{\mathbb{S}^1}}
+
+\newcommand{\sort}[1]{\mathsf{U}_{#1}}
+
+\newcommand{\reduce}{\;\triangleright\;}
+
+\newcommand{\emptyctx}{\Box}
+\newcommand{\wfctx}[1]{{#1}~\mathsf{wf}}
+
+\newcommand{\sortrule}{\sort{}}
+\newcommand{\axrule}{\mathsf{Ax}}
+\newcommand{\ctxemptyrule}{\mathsf{Ctx}_{\emptyctx}}
+\newcommand{\ctxconsrule}{\mathsf{Ctx}_{\mathsf{cons}}}
+\newcommand{\convrule}{\mathsf{Conv}}
+\newcommand{\redconvrule}{\mathsf{Conv}_{\reduce}}
+\newcommand{\reflconvrule}{\mathsf{Refl}_{\equiv}}
+\newcommand{\symconvrule}{\mathsf{Sym}_{\equiv}}
+\newcommand{\transconvrule}{\mathsf{Trans}_{\equiv}}
+
+\newcommand{\sigeta}{\eta_{\Sigma}}
+\newcommand{\sigbeta}{\beta_{\Sigma}}
+\newcommand{\prodeta}{\eta_{\Pi}}
+\newcommand{\prodbeta}{\beta_{\Pi}}
+\newcommand{\nateta}{\eta_{\nat}}
+\newcommand{\natbeta}{\beta_{\nat}}
+
+\begin{document}
+
+\title{Martin-Löf's type theory}
+
+\author{Hugo Herbelin and Nicolas Tabareau}
+
+\maketitle
+
+\section{Core type theory}
+
+The core infrastructure of type theory is presented on Figure~\ref{fig:coretypetheory}.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+  \begin{array}{ccc}
+\mbox{\em syntax of contexts} & & \mbox{\em syntax of expressions}
+\\
+\\
+  \begin{array}{ccc}
+\Gamma & ::= & \emptyctx ~|~ \Gamma, a:A
+  \end{array}
+&&
+  \begin{array}{cccl}
+t, u, A, B & ::= & a ~|~ \sort{l}\\
+  \end{array}
+\\
+\\
+&& \mbox{where $a$ ranges over a set of variables}\\
+&& \mbox{and $l$ ranges over a set of universe levels}\\
+\\
+\mbox{\em context formers} & \qquad & \mbox{\em axiom}\\
+&& \\
+&& \\
+\seqr{\ctxemptyrule}
+     {}
+     {\wfctx{\emptyctx}}
+\qquad
+\seqr{\ctxconsrule}
+     {\Gamma \vdash A : \sort{l}}
+     {\wfctx{\Gamma, a : A}}
+&& \seqr{\axrule}
+     {\wfctx{\Gamma, a:A, \Gamma'}}
+     {\Gamma, a:A, \Gamma' \vdash a : A}
+  \end{array}
+\\
+\\
+\mbox{\em conversion rule}
+\\
+\\
+\seqr{\convrule}
+     {\Gamma \vdash t : A \qquad \Gamma \vdash A \equiv B : \sort{l}}
+     {\Gamma \vdash t : B}
+\\
+\\
+\mbox{\em definitional equality}
+\\
+\\
+\seqr{\redconvrule}
+     {\Gamma \vdash t \reduce u : A}
+     {\Gamma \vdash t \equiv u : A}
+\\
+\\
+\seqr{\reflconvrule}
+     {\Gamma \vdash t : A}
+     {\Gamma \vdash t \equiv t : A}
+\qquad
+\seqr{\symconvrule}
+     {\Gamma \vdash t \equiv u : A}
+     {\Gamma \vdash u \equiv t : A}
+\qquad
+\seqr{\transconvrule}
+     {\Gamma \vdash t \equiv u : A \qquad \Gamma \vdash u \equiv v : A}
+     {\Gamma \vdash t \equiv v : A}
+\end{array}
+$
+}}
+\caption{Core structure of type theory}
+\label{fig:coretypetheory}
+\end{figure*}
+
+\section{Universes}
+
+Extension with a hierarchy of universe is obtained with the rules on Figure~\ref{fig:univtypetheory}.
+
+\begin{figure*}
+\centerline{ \framebox{$
+\begin{array}{c}
+\mbox{\em type former}
+\\
+\\
+\seqr{\sortrule}
+     {}
+     {\Gamma \vdash \sort{l} : \sort{\sortsort{l}}}
+\end{array}
+$
+}}
+\caption{Universes in type theory}
+\label{fig:univtypetheory}
+\end{figure*}
+
+\section{Identity type}
+
+Extension with an identity type is obtained with the rules on Figure~\ref{fig:idtypetheory}.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{cccl}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \mkeq{t}{A}{u} ~|~ \refl{t} ~|~ \subst{p}{v}
+  \end{array}
+\\
+\\
+\mbox{\em type former}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t : A \qquad \Gamma \vdash u : A}
+     {\Gamma \vdash \mkeq{t}{A}{u} : \sort{l}}
+\\
+\\
+  \begin{array}{ccc}
+\mbox{\em introduction rule} &\qquad& \mbox{\em elimination rule}\\
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t : A}
+     {\Gamma \vdash \refl{t} : \mkeq{t}{A}{t}}
+&&
+\seqr{}
+     {\Gamma \vdash p : \mkeq{t}{A}{u} \qquad \Gamma, a : A, b : \mkeq{t}{A}{a} \vdash P : \sort{l} \qquad \Gamma \vdash v : \Sub{\Sub{P}{a}{t}}{b}{\refl{t}}}
+     {\Gamma \vdash \subst{p}{v} : \Sub{\Sub{P}{a}{u}}{b}{p}}
+  \end{array}
+\\
+\\
+\mbox{\em reduction rule}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t : A \qquad \Gamma, a : A, b : \mkeq{t}{A}{a} \vdash B : \sort{l} \qquad \Gamma \vdash v : \Sub{\Sub{B}{a}{t}}{b}{\refl{t}}}
+     {\Gamma \vdash \subst{\refl{t}}{v} \reduce v : \Sub{\Sub{B}{a}{t}}{b}{\refl{t}}}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A \equiv A' \qquad \Gamma \vdash t \equiv t' : A \qquad \Gamma \vdash u \equiv u' : A}
+     {\Gamma \vdash (\mkeq{t}{A}{u}) \equiv (\mkeq{t'}{A'}{u'}) : \sort{l}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t \equiv t' : A}
+     {\Gamma \vdash \refl{t} \equiv \refl{t'} : \mkeq{t}{A}{t}}
+\qquad
+\seqr{}
+     {\Gamma \vdash p \equiv p' : \mkeq{t}{A}{u} \qquad \Gamma, a : A, q : \mkeq{t}{A}{a} \vdash B : \sort{l} \qquad \Gamma \vdash v \equiv v' : \Sub{\Sub{B}{a}{t}}{q}{\refl{t}}}
+     {\Gamma \vdash \subst{p}{v} \equiv \subst{p'}{v'} : \Sub{\Sub{B}{a}{u}}{q}{p}}
+\end{array}
+$
+}}
+\caption{Identity type}
+\label{fig:idtypetheory}
+\end{figure*}
+
+\section{Dependent function type}
+
+Extension with a dependent function type is obtained with the rules on
+Figure~\ref{fig:prodtypetheory}. One assumes given a function
+$\prodsort{l_1}{l_2}$ on universe levels.
+
+\begin{figure*}
+\centerline{ \framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{cccl}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \mkprod{a}{A}{B} ~|~ \mklam{a}{A}{u} ~|~ \mkapp{v}{t}\\
+  \end{array}
+\\
+\\
+\mbox{\em type former}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A : \sort{l_1} \qquad \Gamma, a : A \vdash B : \sort{l_2}}
+     {\Gamma \vdash \mkprod{a}{A}{B} : \sort{\prodsort{l_1}{l_2}}}
+\\
+\\
+  \begin{array}{ccc}
+\mbox{\em introduction rule} &\qquad& \mbox{\em elimination rule}
+\\
+\\
+\seqr{}
+     {\Gamma, a : A \vdash u : B}
+     {\Gamma \vdash \mklam{a}{A}{u} : \mkprod{a}{A}{B}}
+&&
+\seqr{}
+     {\Gamma \vdash v : \mkprod{a}{A}{B} \qquad \Gamma \vdash t : A}
+     {\Gamma \vdash \mkapp{v}{t} : \Sub{B}{a}{t}}
+\\
+\\
+\mbox{\em reduction rule} &\qquad& \mbox{\em observational rule}
+\\
+\\
+\seqr{\prodbeta}
+     {\Gamma, a : A \vdash u : B \qquad \Gamma \vdash t : A}
+     {\Gamma \vdash \mkapp{(\mklam{a}{A}{u})}{t} \reduce \Sub{u}{a}{t} : \Sub{B}{a}{t}}
+&&
+\seqr{\prodeta}
+     {\Gamma \vdash v : \mkprod{a}{A}{B}}
+     {\Gamma \vdash \mklam{a}{A}{\mkapp{v}{a}} \reduce v : \mkprod{a}{A}{B}}
+  \end{array}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A \equiv A' : \sort{l_1} \qquad \Gamma, a : A \vdash B \equiv B' : \sort{l_2}}
+     {\Gamma \vdash \mkprod{a}{A}{B} \equiv \mkprod{a}{A'}{B'} : \sort{\prodsort{l_1}{l_2}}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A \equiv A' : \sort{l} \qquad \Gamma, a : A \vdash u \equiv u' : B}
+     {\Gamma \vdash \mklam{a}{A}{u} \equiv \mklam{a}{A'}{u'} : \mkprod{a}{A}{B}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash v \equiv v' : \mkprod{a}{A}{B} \qquad \Gamma \vdash t \equiv t' : A}
+     {\Gamma \vdash \mkapp{v}{t} \equiv \mkapp{v'}{t'} : \Sub{B}{a}{t}}
+\end{array}
+$
+}}
+\caption{Typing and computational rules for $\Pi$}
+\label{fig:prodtypetheory}
+\end{figure*}
+
+\section{Dependent sum type}
+
+Extension with a dependent sum type is obtained with the rules on Figure~\ref{fig:sigmatypetheory}.
+One assumes given a function
+$\sigsort{l_1}{l_2}$ on universe levels.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{cccl}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \mksig{a}{A}{B} ~|~ \mkpair{t}{u} ~|~ \mkfst{v} ~|~ \mksnd{v}\\
+  \end{array}
+\\
+\\
+\mbox{\em type former}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A : \sort{l_1} \qquad \Gamma, a : A \vdash B : \sort{l_2}}
+     {\Gamma \vdash \mksig{a}{A}{B} : \sort{\sigsort{l_1}{l_2}}}
+\\
+\\
+  \begin{array}{ccc}
+\mbox{\em introduction rule} &\qquad& \mbox{\em elimination rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t : A \qquad \Gamma \vdash u : \Sub{B}{a}{t}}
+     {\Gamma \vdash \mkpair{t}{u} : \mksig{a}{A}{B}}
+&&
+\seqr{}
+     {\Gamma \vdash v : \mksig{a}{A}{B}}
+     {\Gamma \vdash \mkfst{v} : A}
+\qquad
+\seqr{}
+     {\Gamma \vdash v : \mksig{a}{A}{B}}
+     {\Gamma \vdash \mksnd{v} : \Sub{B}{a}{\mkfst{v}}}
+\\
+\\
+\mbox{\em reduction rules} &\qquad& \mbox{\em observational rule}
+\\
+\\
+\seqr{\sigbeta^1}
+     {\Gamma \vdash t : A \qquad \Gamma \vdash u : \Sub{B}{a}{t}}
+     {\Gamma \vdash \mkfst{(\mkpair{t}{u})} \reduce t : A}
+\qquad
+\seqr{\sigbeta^2}
+     {\Gamma \vdash t : A \qquad \Gamma \vdash u : \Sub{B}{a}{t}}
+     {\Gamma \vdash \mksnd{(\mkpair{t}{u})} \reduce u : \Sub{B}{a}{t}}
+&&
+\seqr{\sigeta}
+     {\Gamma \vdash v : \mksig{a}{A}{B}}
+     {\Gamma \vdash \mkpair{\mkfst{v}}{\mksnd{v}} \reduce v : \mksig{a}{A}{B}}
+  \end{array}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A \equiv A' : \sort{l_1} \qquad \Gamma, a : A \vdash B \equiv B' : \sort{l_2}}
+     {\Gamma \vdash \mksig{a}{A}{B} \equiv \mksig{a}{A'}{B'} : \sort{\sigsort{l_1}{l_2}}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t \equiv t' : A \qquad \Gamma, a : A \vdash u \equiv u' : B}
+     {\Gamma \vdash \mkpair{t}{u} \equiv \mkpair{t'}{u'} : \mksig{a}{A}{B}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash v \equiv v' : \mksig{a}{A}{B}}
+     {\Gamma \vdash \mkfst{v} \equiv \mkfst{v'} : A}
+\qquad
+\seqr{}
+     {\Gamma \vdash v \equiv v' : \mksig{a}{A}{B}}
+     {\Gamma \vdash \mksnd{v} \equiv \mksnd{v'} : \Sub{B}{a}{\mkfst{v}}}
+\end{array}
+$
+}}
+\caption{Typing and computational rules for $\Sigma$}
+\label{fig:sigmatypetheory}
+\end{figure*}
+
+\section{Natural numbers}
+
+Extension with Peano natural numbers is obtained with the rules on
+Figure~\ref{fig:nattypetheory}.  One assumes given a universe level
+$\natsort$ where $\nat$ lives.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{cccl}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \nat ~|~ \zero ~|~ \natsucc{t} ~|~ \rec{t}{a}{b}{u}{v} \\
+  \end{array}
+\\
+\\
+\mbox{\em type former}
+\\
+\\
+\seqr{}
+     {}
+     {\Gamma \vdash \nat : \sort{\natsort}}
+\\
+\\
+\mbox{\em introduction rules}
+\\
+\\
+\seqr{}
+     {}
+     {\Gamma \vdash \zero : \nat}
+\qquad
+\seqr{}
+     {\Gamma \vdash t : \nat}
+     {\Gamma \vdash \natsucc{t} : \nat}
+\\
+\\
+\mbox{\em elimination rule}
+\\
+\\
+\seqr{}
+     {\Gamma, a : \nat \vdash B : \sort{l} \qquad \Gamma \vdash t : \Sub{B}{a}{\zero} \qquad \Gamma, a : \nat, b : \Sub{B}{a}{n} \vdash u : \Sub{B}{a}{\natsucc{n}} \qquad \Gamma \vdash v : \nat}
+     {\Gamma \vdash \rec{t}{a}{b}{u}{v} : \Sub{B}{a}{v}}
+\\
+\\
+\mbox{\em reduction rules}
+\\
+\\
+\seqr{\natbeta^{\zero}}
+     {\Gamma, a : \nat \vdash B : \sort{l} \qquad \Gamma \vdash t : \Sub{B}{a}{\zero} \qquad \Gamma, a : \nat, b : \Sub{B}{a}{n} \vdash u : \Sub{B}{a}{\natsucc{n}}}
+     {\Gamma \vdash \rec{t}{a}{b}{u}{\zero} \reduce t : \Sub{B}{a}{\zero}}
+\\
+\\
+\seqr{\natbeta^{\natsucc{}}}
+     {\Gamma, a : \nat \vdash B : \sort{l} \qquad \Gamma \vdash t : \Sub{B}{a}{\zero} \qquad \Gamma, a : \nat, b : \Sub{B}{a}{n} \vdash u : \Sub{B}{a}{\natsucc{n}} \qquad \Gamma \vdash v : \nat}
+     {\Gamma \vdash \rec{t}{a}{b}{u}{\natsucc{v}} \reduce \Sub{\Sub{u}{a}{v}}{b}{\rec{t}{a}{b}{u}{v}} : \Sub{B}{a}{\natsucc{v}}}
+\\
+\\
+%Too weak
+%\mbox{\em observational rule}
+%\seqr{\nateta}
+%     {\Gamma \vdash v : \nat}
+%     {\Gamma \vdash \rec{\zero}{a}{b}{\succ{a}}{v} \reduce v : \nat}
+%\\
+%\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A \equiv A' : \sort{l_1} \qquad \Gamma, a : A \vdash B \equiv B' : \sort{l_2}}
+     {\Gamma \vdash \natsucc{t} \equiv \natsucc{t'} : \nat}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t \equiv t' : \Sub{B}{a}{\zero} \qquad \Gamma, a : \nat, b : \Sub{B}{a}{n} \vdash u \equiv u' : \Sub{B}{a}{\natsucc{n}} \qquad \Gamma \vdash v \equiv v' : \nat}
+     {\Gamma \vdash \rec{t}{a}{b}{u}{v} \equiv \rec{t'}{a}{b}{u'}{v'} : \Sub{B}{a}{v}}
+\end{array}
+$
+}}
+\caption{Typing and computational rules for $\nat$}
+\label{fig:nattypetheory}
+\end{figure*}
+
+\end{document}
