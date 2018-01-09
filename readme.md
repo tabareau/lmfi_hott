@@ -54,4 +54,7 @@ Le cours tentera d'aborder les sujets suivants:
 
 <li><a href="https://github.com/HoTT/HoTT">Une formalisation de HoTT en Coq</a></li>
 
+<li><a href="http://www.cse.chalmers.se/~bengt/papers/hlcs.pdf">Martin-L ̈of’s Type Theory</a>,
+B. Nordström, K. Petersson and J. M. Smith</li>
+
 </ul>
