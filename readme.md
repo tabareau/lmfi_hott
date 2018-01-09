@@ -50,11 +50,11 @@ Le cours tentera d'aborder les sujets suivants:
 <h2>Bibliographie</h2>
 <ul>
 
-<li><a href="https://homotopytypetheory.org/book/">HoTT Book</a></li>
+<li><a href="https://homotopytypetheory.org/book/">HoTT Book</a>, 2013</li>
 
 <li><a href="https://github.com/HoTT/HoTT">Une formalisation de HoTT en Coq</a></li>
 
 <li><a href="http://www.cse.chalmers.se/~bengt/papers/hlcs.pdf">Martin-Löf’s Type Theory</a>,
-B. Nordström, K. Petersson and J. M. Smith</li>
+B. Nordström, K. Petersson and J. M. Smith, 2000</li>
 
 </ul>
