@@ -12,6 +12,7 @@
   {\shortstack{$#2$ \\ \mbox{}\\
                    \mbox{}\hrulefill\mbox{}\\ \mbox{}\\ $#3$} \; \raisebox{2.5ex}{$\;\mbox{$#1$}$}}
 \newcommand{\Sub}[3]{#1[#3/#2]}
+\newcommand{\defeq}{\triangleq}
 
 \newcommand{\Type}{\mathsf{Type}}
 \newcommand{\Set}{\mathsf{Set}}
@@ -243,7 +244,14 @@ $
 
 Extension with a dependent function type is obtained with the rules on
 Figure~\ref{fig:prodtypetheory}. One assumes given a function
-$\prodsort{l_1}{l_2}$ on universe levels.
+$\prodsort{l_1}{l_2}$ on universe levels. We shall occasionally use the following syntactic abbreviations:
+$$
+\begin{array}{lcll}
+A \rightarrow B & \defeq & \mkprod{a}{A}{B} & \mbox{for $a$ fresh variable}\\
+A \Rightarrow B & \defeq & \mkprod{a}{A}{B} & \mbox{for $a$ fresh variable}\\
+\forall a:A. B & \defeq & \mkprod{a}{A}{B}\\
+\end{array}
+$$
 
 \begin{figure*}
 \centerline{ \framebox{$
@@ -315,9 +323,17 @@ $
 
 \section{Dependent sum type}
 
-Extension with a dependent sum type is obtained with the rules on Figure~\ref{fig:sigmatypetheory}.
-One assumes given a function
-$\sigsort{l_1}{l_2}$ on universe levels.
+Extension with a dependent sum type is obtained with the rules on
+Figure~\ref{fig:sigmatypetheory}. One assumes given a function
+$\sigsort{l_1}{l_2}$ on universe levels. We shall occasionally use
+the following syntactic abbreviations:
+$$
+\begin{array}{lcll}
+A \times B & \defeq & \mksig{a}{A}{B} & \mbox{for $a$ fresh variable}\\
+A \wedge B & \defeq & \mksig{a}{A}{B} & \mbox{for $a$ fresh variable}\\
+\exists a:A. B & \defeq & \mksig{a}{A}{B}\\
+\end{array}
+$$
 
 \begin{figure*}
 \centerline{\framebox{$
