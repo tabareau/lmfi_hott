@@ -457,13 +457,17 @@ t, u, v, A, B, p, q & ::= & \ldots ~|~ \nat ~|~ \zero ~|~ \natsucc{t} ~|~ \rec{t
      {\Gamma \vdash \rec{t}{a}{b}{u}{\natsucc{v}} \reduce \Sub{\Sub{u}{a}{v}}{b}{\rec{t}{a}{b}{u}{v}} : \Sub{B}{a}{\natsucc{v}}}
 \\
 \\
-%Too weak
-%\mbox{\em observational rule}
-%\seqr{\nateta}
-%     {\Gamma \vdash v : \nat}
-%     {\Gamma \vdash \rec{\zero}{a}{b}{\succ{a}}{v} \reduce v : \nat}
-%\\
-%\\
+\mbox{\em observational rule}
+\\
+\\
+\seqr{\nateta}
+     {\Gamma, a : \nat \vdash E[a] : A \qquad \Gamma \vdash v : \nat}
+     {\Gamma \vdash \rec{E[\zero]}{a}{b}{E[\succ{a}]}{v} \reduce E[v] : A}
+\\
+\\
+\mbox{where $E[a]$ is made only from elimination rules applied to $a$}
+\\
+\\
 \mbox{\em congruence rules}
 \\
 \\
