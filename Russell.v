@@ -18,7 +18,7 @@ Definition subst (A:Type) (t:A) (P : forall y:A, t = y -> Type)
 Variable set : Type.
 Variable name : Type -> set.
 Variable El : set -> Type.
-Axiom reflect : forall A:Type,A = El (name A).
+Axiom reflect : forall A:Type, A = El (name A).
 
 Inductive Tree : Type :=
 span : forall a : set, (El a -> Tree) -> Tree.
@@ -40,7 +40,7 @@ Qed.
 
 Definition tree := name Tree.
 
-Definition getTree : El tree -> Tree :=
+Definition getTree : El tree (* El (name Tree) = Tree  *) -> Tree :=
   subst Type Tree (fun A _ => A -> Tree) (El tree) (reflect Tree) (fun x => x).
 
 Definition Russell := span tree getTree.
