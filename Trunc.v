@@ -273,7 +273,7 @@ Defined.
 
 (* Axiom funext : Funext.  *)
 
-(* level of homtopy of types *)
+(* Level of homotopy of types *)
 
 Definition IsContr (A:Type) := { x : A & forall y, x = y}.
 Existing Class IsContr. 
@@ -340,13 +340,6 @@ Proof.
 Defined. 
 
 
-  
-
-
-
-
-
-
 (* Preservation of homotopy level *)
 
 Definition contr_equiv A B (f : A -> B)
@@ -399,38 +392,6 @@ Proof.
 Defined.
 
 
-
-Definition hfiber {A B : Type} (f : A -> B) (y : B) := { x : A & f x = y }.
-
-Definition hfiber_canonical {A B : Type} (f : A -> B) (x : A) : hfiber f (f x)
-  := (x ; refl _).
-
-Definition IsEquiv_hfiber_IsConrt {A B : Type} (f : A -> B) :
-  IsEquiv f -> forall y, IsContr (hfiber f y).
-Proof.
-  intros H y. unshelve econstructor.
-  - exists (e_inv f y). exact (e_retr f y).
-  - intros [x e]. apply path_sigma_uncurried. unshelve econstructor; cbn.
-    + destruct e. exact (e_sect f x).
-    + destruct e. rewrite <- (transport_ap (fun X => X = f x) f). 
-      rewrite (e_adj f). rewrite transport_paths_l. rewrite concat_p1.
-      repeat rewrite ap_V. apply (inv2 _ _ _ _)^.
-Defined.
-
-Definition hfiber_IsEquiv_IsContr {A B : Type} {funext:Funext} (f : A -> B) :
-  (forall y, IsContr (hfiber f y)) -> IsEquiv f.
-Proof.
-  intros fib.
-  unshelve econstructor.
-  - intro y. exact (fib y).1.1.
-  - intro x. exact ((fib (f x)).2 (hfiber_canonical f x)..1).    
-  - intro y. cbn. apply (fib y).1.2.
-  - intro x. cbn. 
-    pose ((fib (f x)).2 (hfiber_canonical f x)..2). cbn in i.
-    eapply concat; try exact i. rewrite <- (transport_ap (fun X => X = f x) f).
-    rewrite transport_paths_l. rewrite concat_p1.
-    repeat rewrite ap_V. apply (inv2 _ _ _ _).
-Defined.
 
 Class Equiv A B := BuildEquiv {
   e_fun :> A -> B ;
@@ -487,6 +448,53 @@ Definition isequiv_adjointify {A B : Type} (f : A -> B) (g : B -> A)
   := BuildIsEquiv A B f g (issect' f g issect isretr) isretr 
                   (is_adjoint' f g issect isretr).
 
+
+Definition hfiber {A B : Type} (f : A -> B) (y : B) := { x : A & f x = y }.
+
+Definition hfiber_canonical {A B : Type} (f : A -> B) (x : A) : hfiber f (f x)
+  := (x ; refl _).
+
+Definition IsEquiv_hfiber_IsContr {A B : Type} (f : A -> B) :
+  IsEquiv f -> forall y, IsContr (hfiber f y).
+Proof.
+  intros H y. unshelve econstructor.
+  - exists (e_inv f y). exact (e_retr f y).
+  - intros [x e]. apply path_sigma_uncurried. unshelve econstructor; cbn.
+    + destruct e. exact (e_sect f x).
+    + destruct e. rewrite <- (transport_ap (fun X => X = f x) f). 
+      rewrite (e_adj f). rewrite transport_paths_l. rewrite concat_p1.
+      repeat rewrite ap_V. apply (inv2 _ _ _ _)^.
+Defined.
+
+Definition hfiber_IsEquiv_IsContr {A B : Type} (f : A -> B) :
+  (forall y, IsContr (hfiber f y)) -> IsEquiv f.
+Proof.
+  intros fib.
+  unshelve econstructor.
+  - intro y. exact (fib y).1.1.
+  - intro x. exact ((fib (f x)).2 (hfiber_canonical f x)..1).    
+  - intro y. cbn. apply (fib y).1.2.
+  - intro x. cbn. 
+    pose ((fib (f x)).2 (hfiber_canonical f x)..2). cbn in i.
+    eapply concat; try exact i. rewrite <- (transport_ap (fun X => X = f x) f).
+    rewrite transport_paths_l. rewrite concat_p1.
+    repeat rewrite ap_V. apply (inv2 _ _ _ _).
+Defined.
+
+Definition IsEquiv_compose {funext:Funext} {A B C: Type} (f : A -> B) (H:IsEquiv f)
+           : IsEquiv (fun (g:C -> A) => f ∘ g).
+Proof.
+  simple refine (isequiv_adjointify _ _ _ _).
+  - exact (fun g => (e_inv f) ∘ g).
+  - cbn. intro g. apply funext. intro b. apply e_sect.
+  - cbn. intro g. apply funext. intro a. apply e_retr.
+Defined. 
+    
+Definition IsHProp_inhab_isContr A {H:A -> IsContr A} : IsHProp A.
+  apply IsIrr_to_IsHProp. intros x y.
+  exact (@path_contr _ (H x) _ _).
+Defined.
+
 Definition functor_forall {A B} `{P : A -> Type} `{Q : B -> Type}
     (f : B -> A) (g : forall b:B, P (f b) -> Q b)
   : (forall a:A, P a) -> (forall b:B, Q b) := fun H b => g b (H (f b)).
@@ -497,8 +505,7 @@ Instance isequiv_functor_forall {funext : Funext} {A B} {P : A -> Type} {Q : B -
 Proof.
   simple refine (isequiv_adjointify _ _ _ _).
   - refine (functor_forall (e_inv f) _).
-    intros a y.
-    generalize (e_inv (g _) y). 
+    intros a y. generalize (e_inv (g _) y). 
     exact (transport P (e_retr f a)).
   - intros h. apply funext. intro a. unfold functor_forall.
     destruct (e_retr f a). cbn. apply e_sect. 
@@ -507,16 +514,64 @@ Proof.
     cbn. apply e_retr.
 Defined.
 
-
 Definition Equiv_inverse {A B : Type} (e: A ≃ B) : B ≃ A := BuildEquiv _ _ (e_inv (e_fun e)) (isequiv_inverse _ _ _).  
 
 Typeclasses Transparent e_fun e_inv.
 
-Instance Equiv_forall {funext : Funext} (A A' : Type) (eA : A ≃ A') (B : A -> Type) (B' : A' -> Type) (eB : forall x, B (e_inv eA x) ≃ B' x ) 
+Instance Equiv_forall (A A' : Type)  (B : A -> Type) (B' : A' -> Type)
+         (eA : A ≃ A') (eB : forall x, B (e_inv eA x) ≃ B' x )
+         {funext : Funext}
          : (forall x:A , B x) ≃ (forall x:A', B' x).
 Proof.
-  unshelve refine
-           (BuildEquiv _ _ (functor_forall (e_inv eA) (fun x => e_fun (eB x))) _).
+  unshelve refine (BuildEquiv _ _ (functor_forall (e_inv eA) (fun x => e_fun (eB x))) _).
   unshelve eapply isequiv_functor_forall. auto. apply isequiv_inverse.
   intro a'. exact (@e_isequiv _ _ (eB a')). 
 Defined.
+
+Fixpoint sigma_map {A B P Q} (f: A -> B) (g : forall a, P a -> Q (f a)) (l : sigT P) : sigT Q :=
+  match l with
+  | existT _ a l => existT _ (f a) (g a l)
+  end. 
+
+Definition sigma_map_compose {A B C P Q R } (f: A -> B) (f' : B -> C)
+           (g : forall a, P a -> Q (f a)) (g' : forall b, Q b -> R (f' b))
+           (l : sigT P):
+  sigma_map f' g' (sigma_map f g l) = sigma_map (f' ∘ f) (fun a l => g' (f a) (g a l)) l.
+Proof.
+  destruct l; reflexivity.
+Defined.
+
+Definition sigma_map_eq {A P} (f: A -> A) (g : forall a, P a -> P (f a))
+           (H : forall x, f x = x) (H' : forall a (l : P a), (H a)^ # l = g a l) (l : sigT P) :
+ sigma_map f g l = l.
+Proof.
+  induction l. apply path_sigma_uncurried. unshelve econstructor; cbn; auto.
+  symmetry. apply H'. 
+Defined.
+
+Definition naturality'  {A B} `{P : A -> Type} `{Q : B -> Type}
+           (f : A -> B) 
+           (e' : forall a, P a -> Q (f a)) a b (e : a = b) z:
+  transport (Q ∘ f) e (e' _ z) = e' _ (e # z).
+Proof.
+  destruct e. reflexivity.
+Defined.
+
+Definition Equiv_Sigma (A A':Type) (B: A -> Type) (B': A' -> Type)
+           (eA: A ≃ A') (eB : forall x, B x ≃ B' (e_fun eA x) ) :
+  (sigT B) ≃ (sigT B').
+Proof.
+  unshelve refine (BuildEquiv _ _ _ (isequiv_adjointify _ _ _ _)).
+  - unshelve refine (sigma_map eA (fun x => e_fun (eB x))). 
+  - pose (sigma_map (e_inv eA) (fun a => e_inv (eB (e_inv eA a)))).
+    intro x. apply s. exists x.1.
+    apply (transport B' (e_retr eA _)^). exact x.2.
+  - intros [a b]. cbn. apply path_sigma_uncurried.
+    unshelve econstructor; cbn. apply e_sect.
+    rewrite e_adj. rewrite <- ap_V, transport_ap.
+    rewrite (naturality' (e_fun eA) eB). 
+    apply e_sect.
+  - intros [a b].
+    cbn. apply path_sigma_uncurried. cbn. 
+    unshelve econstructor; apply e_retr. 
+Defined. 
