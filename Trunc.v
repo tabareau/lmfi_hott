@@ -1,9 +1,12 @@
 Set Universe Polymorphism.
 
 (* To avoid dependencies with the hott library, we will not 
-   prove some technical lemmas *)
+   prove some technical lemmas, and admit them *)
 Axiom admit : forall X, X.
 Ltac cheat := apply admit.
+
+
+(* Definition of dependent sums and projections, with notations *)
 
 Inductive sigT {A:Type} (P:A -> Type) : Type :=
     existT : forall x:A, P x -> sigT P.
@@ -21,6 +24,8 @@ Notation "{ x : A & P }" := (sigT (A:=A) (fun x => P)) : type_scope.
 Notation "x .1" := (projT1 x) (at level 3).
 Notation "x .2" := (projT2 x) (at level 3).
 Notation " ( x ; p ) " := (existT _ x p).
+
+(* identity function and composition *)
 
 Notation id := (fun x => x). 
 
@@ -43,6 +48,7 @@ Definition subst (A:Type) (t:A) (P : forall y:A, t = y -> Type)
   | refl _ => v (* : P t (refl t) *)
   end.
 
+(* Check computation behaviour of subst *)
 
 Section subst_computation. 
 
@@ -56,6 +62,7 @@ Section subst_computation.
   
 End subst_computation. 
 
+(* Some omega-groupoid laws on equality *)
 
 Definition concat {A : Type} {x y z : A} (p : x = y) (q : y = z) : x = z.
   destruct p; exact q.
@@ -111,48 +118,6 @@ Definition ap_pp {A B : Type} (f : A -> B) {x y z : A} (p : x = y) (q : y = z) :
   destruct p; reflexivity. 
 Defined.
 
-(* Structure of equality  *)
-
-Definition path_sigma_uncurried {A : Type} (P : A -> Type) (u v : {x:A & P x})
-           (pq : {p : u.1 = v.1 & u.2 = p^# v.2})
-: u = v.
-Proof.
-  destruct pq as [p q].
-  destruct u as [u1 u2], v as [v1 v2]. cbn in p. cbn in q.
-  destruct p. cbn in q. 
-  destruct q. exact  (refl (u1;u2)). 
-Defined.
-
-Definition pr1_path {A} `{P : A -> Type} {u v : sigT P} (p : u = v) : u.1 = v.1 := ap projT1 p.
-
-Notation "p ..1" := (pr1_path p) (at level 50).
-
-Definition pr2_path {A} `{P : A -> Type} {u v : sigT P} (p : u = v)
-  : u.2 = p..1^ # v.2.
-  destruct p. reflexivity. 
-Defined.
-    
-Notation "p ..2" := (pr2_path p) (at level 50). 
-
-
-Definition transport_ap {A B : Type} (P : B -> Type) (f : A -> B) {x y : A}
-           (p : x = y) (z : P (f x)) : transport P (ap f p) z =
-                                       transport (fun x => P (f x)) p z.
-Proof.
-  destruct p; reflexivity.
-Defined.
-
-Definition transport_paths_l {A : Type} {x1 x2 y : A} (p : x1 = x2) (q : x1 = y)
-  : transport (fun x => x = y) p q = p^ @ q.
-Proof.
-  destruct p, q; reflexivity.
-Defined.
-
-Definition transport_paths_r {A : Type} {x y1 y2 : A} (p : y1 = y2) (q : x = y1)
-  : transport (fun y => x = y) p q = q @ p.
-Proof.
-  destruct p. apply (concat_p1 _ _ _ _)^.
-Defined.
 
 
 Definition moveR_M1 {A : Type} {x y : A} (p q : x = y) :
@@ -183,6 +148,7 @@ Definition concat_A1p {A : Type} {f : A -> A} (p : forall x, f x = x) {x y : A} 
   destruct q. cbn. apply inverse. apply concat_p1.
 Defined.
 
+
 Definition moveL_Vp {A : Type} {x y z : A} (p : x = z) (q : y = z) (r : x = y) :
   r @ q = p -> r = p @ q ^.
 Proof.
@@ -208,6 +174,57 @@ Definition ap2 {A A' B:Type} (f:A -> A' -> B) {x y:A} (p:x = y)
   := match p with refl _ => match q with refl _ => refl _ end end.
 
 
+(* Structure of equality on dependent sums *)
+
+Definition path_sigma_uncurried {A : Type} (P : A -> Type) (u v : {x:A & P x})
+           (pq : {p : u.1 = v.1 & u.2 = p^# v.2})
+: u = v.
+Proof.
+  destruct pq as [p q].
+  destruct u as [u1 u2], v as [v1 v2]. cbn in p. cbn in q.
+  destruct p. cbn in q. 
+  destruct q. exact  (refl (u1;u2)). 
+Defined.
+
+Definition pr1_path {A} `{P : A -> Type} {u v : sigT P} (p : u = v) : u.1 = v.1 := ap projT1 p.
+
+Notation "p ..1" := (pr1_path p) (at level 50).
+
+Definition pr2_path {A} `{P : A -> Type} {u v : sigT P} (p : u = v)
+  : u.2 = p..1^ # v.2.
+  destruct p. reflexivity. 
+Defined.
+    
+Notation "p ..2" := (pr2_path p) (at level 50). 
+
+
+(* Structure of equality on dependent sums *)
+
+(* How transport acts on ap *)
+
+Definition transport_ap {A B : Type} (P : B -> Type) (f : A -> B) {x y : A}
+           (p : x = y) (z : P (f x)) : transport P (ap f p) z =
+                                       transport (fun x => P (f x)) p z.
+Proof.
+  destruct p; reflexivity.
+Defined.
+
+(* How transport acts on equality type *)
+
+Definition transport_paths_l {A : Type} {x1 x2 y : A} (p : x1 = x2) (q : x1 = y)
+  : transport (fun x => x = y) p q = p^ @ q.
+Proof.
+  destruct p, q; reflexivity.
+Defined.
+
+Definition transport_paths_r {A : Type} {x y1 y2 : A} (p : y1 = y2) (q : x = y1)
+  : transport (fun y => x = y) p q = q @ p.
+Proof.
+  destruct p. apply (concat_p1 _ _ _ _)^.
+Defined.
+
+(* Definition of equivalences *)
+
 Class IsEquiv {A : Type} {B : Type} (f : A -> B) := BuildIsEquiv {
   e_inv :> B -> A ;
   e_sect : forall x, e_inv (f x) = x;
@@ -220,17 +237,39 @@ Arguments e_sect {_ _} _ {_} _.
 Arguments e_retr {_ _} _ {_} _.
 Arguments e_adj {_ _} _ {_} _.
 
-Definition Funext := forall (A : Type) (P : A -> Type) f g, IsEquiv (@apD10 A P f g).
+
+Class Equiv A B := BuildEquiv {
+  e_fun :> A -> B ;
+  e_isequiv :> IsEquiv e_fun
+}.
+
+Notation "A ≃ B" := (Equiv A B) (at level 20).
 
 
+Arguments e_fun {_ _} _ _.
+Arguments e_isequiv {_ _ _}.
+
+Typeclasses Transparent e_fun e_inv.
+
+Coercion e_fun : Equiv >-> Funclass.
+
+(* other adjunction coherence from e_adj *)
 Theorem other_adj A B (f:A->B) {H : IsEquiv f} (b : B):
   e_sect f (IsEquiv := H) (e_inv f b) = ap (e_inv f) (e_retr f b).
 Proof.
   cheat.
 Defined. 
 
+(* The inverse of an equivalence is an equivalence *)
+
 Instance isequiv_inverse A B (f:A->B) {H : IsEquiv f} : IsEquiv (e_inv f) 
     := BuildIsEquiv _ _ (e_inv f) f (e_retr f) (e_sect f) (other_adj _ _ _).
+
+Definition Equiv_inverse {A B : Type} (e: A ≃ B) : B ≃ A := BuildEquiv _ _ (e_inv (e_fun e)) (isequiv_inverse _ _ _).  
+
+Typeclasses Transparent e_fun e_inv.
+
+(* ap is an equivalence *)
 
 Definition ap_inv_equiv {A B} (f : A -> B) `{IsEquiv _ _ f} x y : f x = f y -> x = y.
 Proof.
@@ -271,12 +310,25 @@ Proof.
   - cheat. 
 Defined. 
 
-(* Axiom funext : Funext.  *)
+(* functional extensionality axiom *)
 
+Definition Funext := forall (A : Type) (P : A -> Type) f g, IsEquiv (@apD10 A P f g).
+ 
 (* Level of homotopy of types *)
 
 Definition IsContr (A:Type) := { x : A & forall y, x = y}.
 Existing Class IsContr. 
+
+Fixpoint IsTrunc n A := match n with
+                           | O => IsContr A
+                           | S n => forall x y:A, IsTrunc n (x = y)
+                           end.
+
+
+
+Definition IsHProp A := IsTrunc 1 A.
+
+(* begin contractible is the lowest level of truncation *)
 
 Definition path_contr {A} `{IsContrA : IsContr A} (x y : A) : x = y
   := let contr := IsContrA.2 in (contr x)^ @ (contr y).
@@ -296,15 +348,7 @@ Definition contr_paths_contr A `{IsContr A} (x y : A) : IsContr (x = y).
   exact (path2_contr _).
 Defined.
 
-
-Fixpoint IsTrunc n A := match n with
-                           | O => IsContr A
-                           | S n => forall x y:A, IsTrunc n (x = y)
-                           end.
-
-
-
-Definition IsHProp A := IsTrunc 1 A.
+(* begin proof irrelevant is the same as IsHprop *)
 
 Definition IsIrr A := forall x y : A, x = y. 
 
@@ -319,15 +363,15 @@ Definition IsIrr_to_IsHProp A : IsIrr A -> IsHProp A.
   apply X.
   intro e. unshelve eapply path2_contr. apply IsIrr_inhab_IsContr; auto.
 Defined. 
+    
+Definition IsHProp_inhab_isContr A {H:A -> IsContr A} : IsHProp A.
+  apply IsIrr_to_IsHProp. intros x y.
+  exact (@path_contr _ (H x) _ _).
+Defined.
 
-
-
+(* Singleton types are contractible*)
 
 Definition singleton A (x:A) := {y : A & x = y}.
-
-
-
-
 
 Definition singleton_IsContr A x : IsContr (singleton A x).
 Proof.
@@ -369,44 +413,31 @@ Defined.
 Definition IsTrunc_Forall {funext:Funext} A (B : A -> Type) n
            (H : forall x, IsTrunc n (B x)) : IsTrunc n (forall x, B x).
 Proof.
-  revert A B H. induction n; intros; cbn.
+  revert A B H. induction n; intros.
   - unshelve econstructor.
     + intro a. apply (H a).1.
     + intro f. apply funext. intro a. apply (H a).2.
-  - intros f g. unshelve eapply (trunc_equiv _ _ _ (e_inv (apD10))).
+  - intros f g. cbn in H. unshelve eapply (trunc_equiv _ _ _ (e_inv (apD10))). 
     + auto.
     + apply IHn. cbn in H. intro a. exact (H a (f a) (g a)). 
     + apply isequiv_inverse.
 Defined. 
 
-(* IsTrunc is a mere proposition *)
+(* IsTrunc is a mere proposition *) 
 
-Definition IsHProp_IsTrunc n A {funext : Funext} : IsHProp (IsTrunc n A).
+Definition IsHProp_IsTrunc n A {funext : Funext} :
+  IsHProp (IsTrunc n A).
 Proof.
-  apply IsIrr_to_IsHProp; revert A. 
+  apply IsIrr_to_IsHProp. revert A. 
   induction n; cbn in *; intros A H H'. 
   - apply path_sigma_uncurried.  unshelve econstructor.
-    apply H.2. apply funext. intro x. unshelve eapply path2_contr.
+    exact (H.2 (H'.1)).
+    apply funext. intro x. unshelve eapply path2_contr.
   - apply funext. intro x. apply funext. intro y.
-    eapply IHn.
+    exact (IHn (x = y) (H x y) (H' x y)).
 Defined.
 
-
-
-Class Equiv A B := BuildEquiv {
-  e_fun :> A -> B ;
-  e_isequiv :> IsEquiv e_fun
-}.
-
-Notation "A ≃ B" := (Equiv A B) (at level 20).
-
-
-Arguments e_fun {_ _} _ _.
-Arguments e_isequiv {_ _ _}.
-
-Typeclasses Transparent e_fun e_inv.
-
-Coercion e_fun : Equiv >-> Funclass.
+(* Adjunctification of an isomorphism *)
 
 Definition e_inv' {A B : Type} (e : A ≃ B) : B -> A := e_inv (e_fun e).
 Definition e_sect' {A B : Type} (e : A ≃ B) := e_sect (e_fun e).
@@ -448,11 +479,14 @@ Definition isequiv_adjointify {A B : Type} (f : A -> B) (g : B -> A)
   := BuildIsEquiv A B f g (issect' f g issect isretr) isretr 
                   (is_adjoint' f g issect isretr).
 
+(* homotopy fiber *)
 
 Definition hfiber {A B : Type} (f : A -> B) (y : B) := { x : A & f x = y }.
 
 Definition hfiber_canonical {A B : Type} (f : A -> B) (x : A) : hfiber f (f x)
   := (x ; refl _).
+
+(* Isequiv f <-> forall y, IsContr (hfiber f y) *)
 
 Definition IsEquiv_hfiber_IsContr {A B : Type} (f : A -> B) :
   IsEquiv f -> forall y, IsContr (hfiber f y).
@@ -472,7 +506,9 @@ Proof.
   intros fib.
   unshelve econstructor.
   - intro y. exact (fib y).1.1.
-  - intro x. exact ((fib (f x)).2 (hfiber_canonical f x)..1).    
+  - intro x. cbn.
+    pose ((fib (f x)).2).  cbn in i.
+    pose ((i (hfiber_canonical f x))..1). exact i0. 
   - intro y. cbn. apply (fib y).1.2.
   - intro x. cbn. 
     pose ((fib (f x)).2 (hfiber_canonical f x)..2). cbn in i.
@@ -480,6 +516,8 @@ Proof.
     rewrite transport_paths_l. rewrite concat_p1.
     repeat rewrite ap_V. apply (inv2 _ _ _ _).
 Defined.
+
+(* beign an equivalence is HProp (not finished) *)
 
 Definition IsEquiv_compose {funext:Funext} {A B C: Type} (f : A -> B) (H:IsEquiv f)
            : IsEquiv (fun (g:C -> A) => f ∘ g).
@@ -489,11 +527,25 @@ Proof.
   - cbn. intro g. apply funext. intro b. apply e_sect.
   - cbn. intro g. apply funext. intro a. apply e_retr.
 Defined. 
-    
-Definition IsHProp_inhab_isContr A {H:A -> IsContr A} : IsHProp A.
-  apply IsIrr_to_IsHProp. intros x y.
-  exact (@path_contr _ (H x) _ _).
+
+Definition rinv {A B : Type} (f : A -> B) := {g:B->A & f ∘ g = id}. 
+
+Definition rinv_IsContr {funext:Funext} {A B : Type} (f : A -> B) (H:IsEquiv f)
+  : IsContr (rinv f).
+Proof.
+  apply IsEquiv_hfiber_IsContr. unshelve eapply IsEquiv_compose; auto.
 Defined.
+
+Definition rcoh {A B : Type} (f : A -> B) (H:rinv f) :=
+  {eta: H.1 ∘ f = id & forall x:A, apD10 H.2 _  = ap f (apD10 eta x) }. 
+
+Definition rcoh_IsContr {funext:Funext} {A B : Type} (f : A -> B) (H:IsEquiv f) (Hrinv:rinv f)
+  : IsContr (rcoh f Hrinv).
+Proof.
+  cheat.
+Defined.   
+
+(* Equivalences between dependent products *)
 
 Definition functor_forall {A B} `{P : A -> Type} `{Q : B -> Type}
     (f : B -> A) (g : forall b:B, P (f b) -> Q b)
@@ -514,9 +566,6 @@ Proof.
     cbn. apply e_retr.
 Defined.
 
-Definition Equiv_inverse {A B : Type} (e: A ≃ B) : B ≃ A := BuildEquiv _ _ (e_inv (e_fun e)) (isequiv_inverse _ _ _).  
-
-Typeclasses Transparent e_fun e_inv.
 
 Instance Equiv_forall (A A' : Type)  (B : A -> Type) (B' : A' -> Type)
          (eA : A ≃ A') (eB : forall x, B (e_inv eA x) ≃ B' x )
@@ -527,6 +576,8 @@ Proof.
   unshelve eapply isequiv_functor_forall. auto. apply isequiv_inverse.
   intro a'. exact (@e_isequiv _ _ (eB a')). 
 Defined.
+
+(* Equivalences between dependent sums *)
 
 Fixpoint sigma_map {A B P Q} (f: A -> B) (g : forall a, P a -> Q (f a)) (l : sigT P) : sigT Q :=
   match l with
