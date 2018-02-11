@@ -23,6 +23,7 @@
 \newcommand{\mkeq}[3]{{#1} =_{#2} {#3}}
 
 \newcommand{\mkprod}[3]{\Pi {#1}\!:\!{#2}.\,{#3}}
+\newcommand{\mkimp}[2]{{#1}\rightarrow{#2}}
 \newcommand{\mklam}[3]{\lambda {#1}\!:\!{#2}.\,{#3}}
 \newcommand{\mkapp}[2]{{#1}\,{#2}}
 \newcommand{\prodsort}[2]{\Pi ({#1},{#2})}
@@ -41,12 +42,22 @@
 \newcommand{\nat}{\mathbb{N}}
 \newcommand{\natsort}{l_{\nat}}
 
+\newcommand{\headname}{\mathsf{hd}}
+\newcommand{\tailname}{\mathsf{tl}}
+\newcommand{\streamname}{\mathsf{Stream}}
+\newcommand{\head}[1]{\headname\,{#1}}
+\newcommand{\tail}[1]{\tailname\,{#1}}
+\newcommand{\mkstream}[5]{\{\headname \mapsto {#2}; \tailname \mapsto_{#3} {#4}\}_{#1}{#5}}
+\newcommand{\stream}[1]{\streamname\,{#1}}
+
 \newcommand{\Sone}{\mathbb{S}^1}
 \newcommand{\casesone}[5]
   {\mathsf{case}\;{#1}\;\mathsf{of}\;{#2}\;\Rightarrow\;{#3}\;|\;{#4}\;\Rightarrow\;{#5}\;\mathsf{end}}
 \newcommand{\base}{\mathsf{base}}
 \newcommand{\loopsone}{\mathsf{loop}}
 \newcommand{\Sonesort}{l_{\mathbb{S}^1}}
+
+\newcommand{\case}[2]{\mathsf{case}\;{#1}\;\mathsf{of}\;{#2}}
 
 \newcommand{\sort}[1]{\mathsf{U}_{#1}}
 
@@ -71,6 +82,10 @@
 \newcommand{\prodbeta}{\beta_{\Pi}}
 \newcommand{\nateta}{\eta_{\nat}}
 \newcommand{\natbeta}{\beta_{\nat}}
+\newcommand{\streambeta}{\beta_{\streamname}}
+\newcommand{\streameta}{\eta_{\streamname}}
+\newcommand{\poseta}{\eta_{\mathit{pos}}}
+\newcommand{\posbeta}{\beta_{\mathit{pos}}}
 
 \begin{document}
 
@@ -478,7 +493,7 @@ t, u, v, A, B, p, q & ::= & \ldots ~|~ \nat ~|~ \zero ~|~ \natsucc{t} ~|~ \rec{t
 \\
 \seqr{\nateta}
      {\Gamma, a : \nat \vdash E[a] : A \qquad \Gamma \vdash v : \nat}
-     {\Gamma \vdash \rec{E[\zero]}{a}{b}{E[\succ{a}]}{v} \reduce E[v] : A}
+     {\Gamma \vdash \rec{E[\zero]}{a}{b}{E[\natsucc{a}]}{v} \reduce E[v] : A}
 \\
 \\
 \mbox{where $E[a]$ is made only from elimination rules applied to $a$}
@@ -488,7 +503,7 @@ t, u, v, A, B, p, q & ::= & \ldots ~|~ \nat ~|~ \zero ~|~ \natsucc{t} ~|~ \rec{t
 \\
 \\
 \seqr{}
-     {\Gamma \vdash A \equiv A' : \sort{l_1} \qquad \Gamma, a : A \vdash B \equiv B' : \sort{l_2}}
+     {\Gamma \vdash t \equiv t' : \nat}
      {\Gamma \vdash \natsucc{t} \equiv \natsucc{t'} : \nat}
 \\
 \\
@@ -500,6 +515,242 @@ $
 }}
 \caption{Typing and computational rules for $\nat$}
 \label{fig:nattypetheory}
+\end{figure*}
+
+\section{Streams}
+
+Extension with streams (infinite lists) is obtained with the rules on
+Figure~\ref{fig:streamtypetheory}.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{cccl}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \stream{A} ~|~ \head{t} ~|~ \tail{t} ~|~ \mkstream{c}{t}{s}{u}{v} \\
+  \end{array}
+\\
+\\
+\mbox{\em type former}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A : \sort{l}}
+     {\Gamma \vdash \stream{A} : \sort{l}}
+\\
+\\
+\mbox{\em introduction rule}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, c : C \vdash t : A \qquad \Gamma, s : \mkimp{C}{\stream{A}}, c : C \vdash u : \stream{A} \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \mkstream{c}{t}{s}{u}{v} : \stream{\Sub{A}{c}{v}}}
+\\
+\\
+\mbox{\em elimination rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A : \sort{l} \qquad \Gamma \vdash t : \stream{A}}
+     {\Gamma \vdash \head{t} : A}
+\qquad
+\seqr{}
+     {\Gamma \vdash A : \sort{l} \qquad \Gamma \vdash t : \stream{A}}
+     {\Gamma \vdash \tail{t} : \stream{}}
+\\
+\\
+\mbox{\em reduction rules}
+\\
+\\
+\seqr{\streambeta^{\headname}}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, c : C \vdash t : A \qquad \Gamma, s : \mkimp{C}{\stream{A}}, c : C \vdash u : \stream{A} \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \head{\mkstream{c}{t}{s}{u}{v}} \reduce \Sub{t}{c}{v} : \Sub{A}{c}{v}}
+\\
+\\
+\seqr{\streambeta^{\tailname}}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, c : C \vdash t : A \qquad \Gamma, s : \mkimp{C}{\stream{A}}, c : C \vdash u : \stream{A} \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \tail{\mkstream{c}{t}{s}{u}{v}} \reduce \Sub{\Sub{u}{c}{v}}{s\,x}{\mkstream{c}{t}{s}{u}{x}} : \stream{A}}
+\\
+\\
+\mbox{\em observational rule}
+\\
+\\
+\seqr{\streameta}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, a : C \vdash t : \stream{A}}
+     {\Gamma \vdash \mkstream{a}{\head{t}}{s}{\tail{t}}{a} \equiv t : \stream{A}}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash A \equiv A' : \sort{l}}
+     {\Gamma \vdash \stream{A} \equiv \stream{A'} : \sort{l}}
+\qquad
+\seqr{}
+     {\Gamma \vdash t \equiv t' : \stream{A}}
+     {\Gamma \vdash \head{t} \equiv \head{t'} : A}
+\qquad
+\seqr{}
+     {\Gamma \vdash t \equiv t' : \stream{A}}
+     {\Gamma \vdash \tail{t} \equiv \tail{t'} : A}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma \vdash t \equiv t' : A \qquad \Gamma, s : \mkimp{C}{\stream{A}}, c : C \vdash u \equiv u' : \stream{A} \qquad \Gamma \vdash v \equiv v' : C}
+     {\Gamma \vdash \mkstream{c}{t}{s}{u}{v} \equiv \mkstream{c}{t'}{s}{u'}{v'} : \stream{A}}
+\end{array}
+$
+}}
+\caption{Typing and computational rules for streams}
+\label{fig:streamtypetheory}
+\end{figure*}
+
+\section{Generic positive types}
+
+We give a syntax for arbitrary forms of (non-recursive) positive type,
+as a (non-recursive) generalization of the type $\nat$. For that
+purpose, we introduce a couple of auxiliary structures.
+
+We introduce a class of positive types,
+denoted by the letter $P$ and we reuse for that purpose the notation
+$\otimes$ of linear logic, but this time in a dependent form (i.e. the
+type on the right can depend on the inhabitant of the type of the
+left), and in an intuitionistic setting (i.e. with contraction and
+weakening allowed).
+
+We introduce a class $w$ of inhabitants of such positive types and a
+class $\rho$ of patterns for matching inhabitants of such positive
+types. These patterns can be declared in the context.
+
+A positive type has the form $(c_1 : P_1 \oplus ... \oplus c_n :
+P_n)_{w:P}$ where $w$ are the parameters of the type and the $c_i$ are
+the names of constructors (assumed all distinct).
+
+A constructor of this type has the form $c_i\,w$. A destructor has the
+form $\case{t}{[ c_1 \rho \mapsto t | ... | c_n \rho \mapsto t ]}$.
+
+Substitution of $\rho$ by $w$ is as expected.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{lcll}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \case{t}{[ c_1 \rho \mapsto t | ... | c_n \rho \mapsto t ]} ~|~ c_i w ~|~ 
+(c_1 : P \oplus ... \oplus c_n : P)_{w:P}\\
+P & ::= & 1 ~|~ (a:A) \otimes P\\
+w & ::= & () ~|~ (t,w)\\
+\rho & ::= & () ~|~ (a,\rho)\\
+\Gamma & ::= & ... ~|~ \rho : P\\
+  \end{array}
+\\
+\\
+\mbox{\em type formers}
+\\
+\\
+\seqr{}
+     {}
+     {\Gamma \vdash 1 : \sort{l}}
+\qquad
+\seqr{}
+     {\Gamma \vdash A : \sort{l} \qquad \Gamma, a : A \vdash P : \sort{l}}
+     {\Gamma \vdash (a : A) \otimes P : \sort{l}}
+\qquad
+\seqr{}
+     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w : P}
+     {\Gamma \vdash (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} : \sort{l}}
+\\
+\\
+\begin{array}{ccc}
+\mbox{\em typing rules for instances} & & \mbox{\em typing rules for patterns}
+\\
+\\
+\seqr{}
+     {}
+     {\Gamma \vdash () : 1}
+\qquad
+\seqr{}
+     {\Gamma \vdash t : A \qquad \Gamma \vdash w : \Sub{P}{a}{t}}
+     {\Gamma \vdash (t,w) : (a:A) \otimes P}
+&\qquad&
+\seqr{}
+     {}
+     {\Gamma \vdash_d () : 1}
+\qquad
+\seqr{}
+     {\Gamma \vdash A : \sort{l} \qquad \Gamma, a : A \vdash_d \rho : P}
+     {\Gamma \vdash_d (a,\rho) : (a:A) \otimes P}
+\qquad
+\seqr{}
+     {\wfctx{\Gamma} \qquad \Gamma \vdash_d \rho : P}
+     {\wfctx{\Gamma, \rho : P}}
+\end{array}
+\\
+\\
+\mbox{\em introduction rules}
+\\
+\\
+\seqr{(1 \leq i \leq n)}
+     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_j : \sort{l} \quad (1 \leq j \leq n) \qquad \Gamma \vdash w' : P \qquad \Gamma \vdash w : P_i}
+     {\Gamma \vdash c_i w : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w':P}}
+\\
+\\
+\mbox{\em elimination rule}
+\\
+\\
+\seqr{}
+     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash B : \sort{l} \qquad \Gamma, \rho : P_i \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash \case{v}{[ c_1 \rho \mapsto t_1 | ... | c_n \rho \mapsto t_n ]} : \Sub{B}{a}{v}}
+\\
+\\
+\mbox{\em reduction rules}
+\\
+\\
+\seqr{\posbeta^{i}}
+     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash B : \sort{l} \qquad \Gamma, \rho : P_i \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash \case{c_i\,w}{[ c_1 \rho \mapsto t_1 | ... | c_n \rho \mapsto t_n ]} \reduce \Sub{t_i}{\rho}{w} : \Sub{B}{a}{c_i\,w}}
+\\
+\\
+\mbox{\em observational rule}
+\\
+\\
+\seqr{\poseta}
+     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash E[a] : A \qquad \Gamma \vdash v : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash \case{v}{[ c_1 \rho \mapsto E[c_1\,\rho] | ... | c_n \rho \mapsto E[c_n\,\rho] ]} \reduce E[v] : \Sub{B}{a}{v}}
+\\
+\\
+\mbox{where $E[a]$ is made only from elimination rules applied to $a$}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash P_i \equiv P_i' : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash P \equiv P' : \sort{l} \qquad \Gamma \vdash w \equiv w' : P }
+     {\Gamma \vdash (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \equiv (c_1 : P'_1 \oplus ... \oplus c_n : P'_n)_{w':P'} : \sort{l}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w'' : P \qquad \Gamma \vdash w \equiv w' : P_i}
+     {\Gamma \vdash c_i\,w \equiv c_i\,w' : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w'':P}}
+\\
+\\
+\seqr{}
+     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash B : \sort{l} \qquad \Gamma, \rho : P_i \vdash t_i \equiv t'_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v \equiv v' : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash \case{v}{[ c_1 \rho \mapsto t_1 | ... | c_n \rho \mapsto t_n ]} \equiv \case{v'}{[ c_1 \rho \mapsto t'_1 | ... | c_n \rho \mapsto t'_n ]} : \Sub{B}{a}{v}}
+\\
+\\
+\mbox{+ judgemental equality and congruence rules for $\Gamma \vdash w : P$}
+\end{array}
+$
+}}
+\caption{General typing and computational rules for positive types}
+\label{fig:positivetypetheory}
 \end{figure*}
 
 \end{document}
