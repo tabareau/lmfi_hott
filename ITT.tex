@@ -86,6 +86,12 @@
 \newcommand{\streameta}{\eta_{\streamname}}
 \newcommand{\poseta}{\eta_{\mathit{pos}}}
 \newcommand{\posbeta}{\beta_{\mathit{pos}}}
+\newcommand{\negeta}{\eta_{\mathit{neg}}}
+\newcommand{\negbeta}{\beta_{\mathit{neg}}}
+\newcommand{\receta}{\eta_{\mathit{\mu}}}
+\newcommand{\recbeta}{\beta_{\mathit{\mu}}}
+\newcommand{\coreceta}{\eta_{\mathit{\nu}}}
+\newcommand{\corecbeta}{\beta_{\mathit{\nu}}}
 
 \begin{document}
 
@@ -610,6 +616,11 @@ $
 
 \section{Generic positive types}
 
+\newcommand{\mkpostype}[4]{#1^{#3}_{#2:#4}}
+\newcommand{\vdashpos}{\vdash_{\mathit P}}
+\newcommand{\vdashposinh}{\vdash_{\mathit p}}
+\newcommand{\vdashpospat}{\vdash_{\mathit pat}}
+
 We give a syntax for arbitrary forms of (non-recursive) positive type,
 as a (non-recursive) generalization of the type $\nat$. For that
 purpose, we introduce a couple of auxiliary structures.
@@ -625,24 +636,25 @@ We introduce a class $w$ of inhabitants of such positive types and a
 class $\rho$ of patterns for matching inhabitants of such positive
 types. These patterns can be declared in the context.
 
-A positive type has the form $(c_1 : P_1 \oplus ... \oplus c_n :
-P_n)_{w:P}$ where $w$ are the parameters of the type and the $c_i$ are
+A positive type has the form $\mkpostype{(c_1 : P_1 \oplus ... \oplus c_n :
+P_n)}{\rho}{w}{P}$ where $w$ are the parameters of the type and the $c_i$ are
 the names of constructors (assumed all distinct).
 
 A constructor of this type has the form $c_i\,w$. A destructor has the
 form $\case{t}{[ c_1 \rho \mapsto t | ... | c_n \rho \mapsto t ]}$.
 
-Substitution of $\rho$ by $w$ is as expected.
+Substitution of $\rho$ by $w$ is as expected. Note that the axiom rule
+needs to be generalized so as to extract variables of a pattern.
 
 \begin{figure*}
+\vspace{-2cm}
 \centerline{\framebox{$
 \begin{array}{c}
 \mbox{\em extended syntax of expressions}
 \\
 \\
   \begin{array}{lcll}
-t, u, v, A, B, p, q & ::= & \ldots ~|~ \case{t}{[ c_1 \rho \mapsto t | ... | c_n \rho \mapsto t ]} ~|~ c_i w ~|~ 
-(c_1 : P \oplus ... \oplus c_n : P)_{w:P}\\
+t, u, v, A, B, p, q & ::= & \ldots  ~|~ \mkpostype{(c_1 : P \oplus ... \oplus c_n : P)}{\rho}{w}{P} ~|~ \case{t}{[ c_1 \rho \mapsto t | ... | c_n \rho \mapsto t ]} ~|~ c_i w\\
 P & ::= & 1 ~|~ (a:A) \otimes P\\
 w & ::= & () ~|~ (t,w)\\
 \rho & ::= & () ~|~ (a,\rho)\\
@@ -655,15 +667,15 @@ w & ::= & () ~|~ (t,w)\\
 \\
 \seqr{}
      {}
-     {\Gamma \vdash 1 : \sort{l}}
+     {\Gamma \vdashpos 1 : \sort{l}}
 \qquad
 \seqr{}
-     {\Gamma \vdash A : \sort{l} \qquad \Gamma, a : A \vdash P : \sort{l}}
-     {\Gamma \vdash (a : A) \otimes P : \sort{l}}
+     {\Gamma \vdash A : \sort{l} \qquad \Gamma, a : A \vdashpos P : \sort{l}}
+     {\Gamma \vdashpos (a : A) \otimes P : \sort{l}}
 \qquad
 \seqr{}
-     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w : P}
-     {\Gamma \vdash (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} : \sort{l}}
+     {\Gamma \vdashpos P : \sort{l} \qquad \Gamma, \rho : P \vdashpos P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w : P \qquad \mbox{names $d_i$ disjoint}}
+     {\Gamma \vdash \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P} : \sort{l}}
 \\
 \\
 \begin{array}{ccc}
@@ -672,22 +684,22 @@ w & ::= & () ~|~ (t,w)\\
 \\
 \seqr{}
      {}
-     {\Gamma \vdash () : 1}
+     {\Gamma \vdashposinh () : 1}
 \qquad
 \seqr{}
-     {\Gamma \vdash t : A \qquad \Gamma \vdash w : \Sub{P}{a}{t}}
-     {\Gamma \vdash (t,w) : (a:A) \otimes P}
+     {\Gamma \vdash t : A \qquad \Gamma \vdashposinh w : \Sub{P}{a}{t}}
+     {\Gamma \vdashposinh (t,w) : (a:A) \otimes P}
 &\qquad&
 \seqr{}
      {}
-     {\Gamma \vdash_d () : 1}
+     {\Gamma \vdashpospat () : 1}
 \qquad
 \seqr{}
-     {\Gamma \vdash A : \sort{l} \qquad \Gamma, a : A \vdash_d \rho : P}
-     {\Gamma \vdash_d (a,\rho) : (a:A) \otimes P}
+     {\Gamma \vdash A : \sort{l} \qquad \Gamma, a : A \vdashpospat \rho : P}
+     {\Gamma \vdashpospat (a,\rho) : (a:A) \otimes P}
 \qquad
 \seqr{}
-     {\wfctx{\Gamma} \qquad \Gamma \vdash_d \rho : P}
+     {\wfctx{\Gamma} \qquad \Gamma \vdashpospat \rho : P}
      {\wfctx{\Gamma, \rho : P}}
 \end{array}
 \\
@@ -696,15 +708,15 @@ w & ::= & () ~|~ (t,w)\\
 \\
 \\
 \seqr{(1 \leq i \leq n)}
-     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_j : \sort{l} \quad (1 \leq j \leq n) \qquad \Gamma \vdash w' : P \qquad \Gamma \vdash w : P_i}
-     {\Gamma \vdash c_i w : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w':P}}
+     {\Gamma \vdash w' : P \qquad \Gamma, \rho : P \vdash P_j : \sort{l} \quad (1 \leq j \leq n) \qquad \Gamma \vdash w : \Sub{P_i}{\rho}{w'}}
+     {\Gamma \vdash c_i w : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w'}{P}}
 \\
 \\
 \mbox{\em elimination rule}
 \\
 \\
 \seqr{}
-     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash B : \sort{l} \qquad \Gamma, \rho : P_i \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash v : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P} \qquad \Gamma, a : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P} \vdash B : \sort{l} \qquad \Gamma, \rho : \Sub{P_i}{\rho}{w} \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n)}
      {\Gamma \vdash \case{v}{[ c_1 \rho \mapsto t_1 | ... | c_n \rho \mapsto t_n ]} : \Sub{B}{a}{v}}
 \\
 \\
@@ -712,7 +724,10 @@ w & ::= & () ~|~ (t,w)\\
 \\
 \\
 \seqr{\posbeta^{i}}
-     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash B : \sort{l} \qquad \Gamma, \rho : P_i \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\begin{array}{l}
+      \Gamma \vdashpos P : \sort{l} \qquad \Gamma, \rho' : P \vdashpos P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w' : P \qquad \mbox{$d_i$ disjoint}\\
+      \Gamma, a : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w'}{P'} \vdash B : \sort{l} \qquad \Gamma, \rho : \Sub{P_i}{\rho'}{w'} \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdashposinh w : \Sub{P_i}{\rho'}{w'}\\
+      \end{array}}
      {\Gamma \vdash \case{c_i\,w}{[ c_1 \rho \mapsto t_1 | ... | c_n \rho \mapsto t_n ]} \reduce \Sub{t_i}{\rho}{w} : \Sub{B}{a}{c_i\,w}}
 \\
 \\
@@ -720,7 +735,7 @@ w & ::= & () ~|~ (t,w)\\
 \\
 \\
 \seqr{\poseta}
-     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash E[a] : A \qquad \Gamma \vdash v : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash v : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P} \qquad \Gamma, a : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P} \vdash E[a] : A}
      {\Gamma \vdash \case{v}{[ c_1 \rho \mapsto E[c_1\,\rho] | ... | c_n \rho \mapsto E[c_n\,\rho] ]} \reduce E[v] : \Sub{B}{a}{v}}
 \\
 \\
@@ -731,17 +746,17 @@ w & ::= & () ~|~ (t,w)\\
 \\
 \\
 \seqr{}
-     {\Gamma \vdash P_i \equiv P_i' : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash P \equiv P' : \sort{l} \qquad \Gamma \vdash w \equiv w' : P }
-     {\Gamma \vdash (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \equiv (c_1 : P'_1 \oplus ... \oplus c_n : P'_n)_{w':P'} : \sort{l}}
+     {\Gamma \vdash P \equiv P' : \sort{l} \qquad \Gamma, \rho : P \vdash P_i \equiv P_i' : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w \equiv w' : P}
+     {\Gamma \vdash \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P} \equiv \mkpostype{(c_1 : P'_1 \oplus ... \oplus c_n : P'_n)}{\rho}{w'}{P'} : \sort{l}}
 \\
 \\
 \seqr{}
-     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w'' : P \qquad \Gamma \vdash w \equiv w' : P_i}
-     {\Gamma \vdash c_i\,w \equiv c_i\,w' : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w'':P}}
+     {\Gamma \vdash P : \sort{l} \qquad \Gamma, \rho : P \vdash P_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash w'' : P \qquad \Gamma \vdash w \equiv w' : \Sub{P_i}{\rho}{w''}}
+     {\Gamma \vdash c_i\,w \equiv c_i\,w' : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w''}{P}}
 \\
 \\
 \seqr{}
-     {\Gamma, a : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P} \vdash B : \sort{l} \qquad \Gamma, \rho : P_i \vdash t_i \equiv t'_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v \equiv v' : (c_1 : P_1 \oplus ... \oplus c_n : P_n)_{w:P}}
+     {\Gamma \vdash v \equiv v' : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho'}{w}{P} \qquad \Gamma, a : \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho'}{w}{P} \vdash B : \sort{l} \qquad \Gamma, \rho : \Sub{P_i}{\rho'}{w} \vdash t_i \equiv t'_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n)}
      {\Gamma \vdash \case{v}{[ c_1 \rho \mapsto t_1 | ... | c_n \rho \mapsto t_n ]} \equiv \case{v'}{[ c_1 \rho \mapsto t'_1 | ... | c_n \rho \mapsto t'_n ]} : \Sub{B}{a}{v}}
 \\
 \\
@@ -751,6 +766,295 @@ $
 }}
 \caption{General typing and computational rules for positive types}
 \label{fig:positivetypetheory}
+\end{figure*}
+
+\section{Generic negative types}
+
+\newcommand{\mknegtype}[4]{\{ #1 \}^{#3}_{#2:#4}}
+\newcommand{\mkneg}[3]{\{ #1 \}_{#2}^{#3}}
+\newcommand{\destructor}[2]{#1\,#2}
+\newcommand{\vdashneg}{\vdash_{\mathit N}}
+
+We give a syntax for arbitrary forms of (non-recursive) negative type,
+as a (non-recursive) generalization of the type $\stream{A}$.
+
+A negative type has the form $\mknegtype{d_1 : A \,\&\, ... \,\&\, d_n :
+  A}{\rho}{w}{P}$ where $w$ are the parameters of the type and the
+$d_i$ are the names of destructors (assumed all distinct). A
+constructor of this type has the form $\mkneg{d_1 \mapsto t ; ... ;
+  d_n \mapsto t}{c}{v}$. A destructor has the form $\destructor{t}$.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{lcll}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \mknegtype{d_1 : N \,\&\, ... \,\&\, d_n : N}{\rho}{w}{P} ~|~ \mkneg{d_1 \mapsto t ; ... ; d_n \mapsto t}{c}{v} ~|~ \destructor{d_i}{t}\\
+N & ::= & A ~|~ \mkprod{a}{A}{N} \qquad \mbox{(i.e. a distinguished subset of the grammar of terms)}\\
+  \end{array}
+\\
+\\
+\mbox{\em type formers}
+\\
+\\
+\seqr{}
+     {\Gamma \vdashposinh w : P \qquad \Gamma, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n) \qquad \mbox{names $d_i$ disjoint}}
+     {\Gamma \vdash \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+\\
+\\
+\mbox{\em introduction rule}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma \vdashposinh w : P \qquad \Gamma, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma, c : C \vdash t_i : \Sub{N_i}{\rho}{w} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \mkneg{d_1 \mapsto t_1 ; ... ; d_n \mapsto t_n}{c}{v} : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+\\
+\\
+\mbox{\em elimination rules}
+\\
+\\
+\seqr{(1 \leq i \leq n)}
+     {\Gamma \vdash t : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+     {\Gamma \vdash \destructor{d_i}{t} : \Sub{N_i}{\rho}{w}}
+\\
+\\
+\mbox{\em reduction rules}
+\\
+\\
+\seqr{\negbeta^{i}}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma \vdashposinh w : P \qquad \Gamma, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma, c : C \vdash t_i : \Sub{N_i}{\rho}{w} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \destructor{d_i}{\mkneg{d_1 \mapsto t_1 ; ... ; d_n \mapsto t_n}{c}{v}} \reduce \Sub{t_i}{c}{v} : \Sub{N_i}{\rho}{w}}
+\\
+\\
+\mbox{\em observational rule}
+\\
+\\
+\seqr{\negeta}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, c : C \vdash t : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+     {\Gamma \vdash \mkneg{d_1 \mapsto \destructor{d_i}{t}; ... ; d_n \mapsto \destructor{d_n}{t}}{c}{c} \reduce t : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma \vdashposinh w \equiv w' : P \qquad \Gamma, \rho : P \vdash N_i \equiv N_i' : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma \vdash P \equiv P' : \sort{l}}
+     {\Gamma \vdash \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P} \equiv \mknegtype{d_1 : N'_1 \,\&\, ... \,\&\, d_n : N'_n}{w'}{P'} : \sort{l}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma \vdashposinh w : P \qquad \Gamma, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma, c : C \vdash t_i \equiv t_i' : \Sub{N_i}{\rho}{w} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v \equiv v' : C}
+     {\Gamma \vdash \mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v} \equiv \mkneg{d_1 \mapsto t'_1; ... ; d_n \mapsto t'_n}{c}{v'} : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t \equiv t' : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}}
+     {\Gamma \vdash \destructor{d_i}{t} \equiv \destructor{d_i}{t'} : \Sub{N_i}{\rho}{w}}
+\end{array}
+$
+}}
+\caption{General typing and computational rules for negative types}
+\label{fig:negativetypetheory}
+\end{figure*}
+
+\section{Recursive types}
+
+\newcommand{\appmu}[3]{(#1)_{#2}^{#3}}
+\newcommand{\inmu}[1]{\mathsf{in}\,#1}
+
+We give a syntax for recursive types, i.e. for types defined as
+smallest type generated by its constructors. Recursion is expected to
+occur only in {\em strictly positive} position, as e.g. in $\mu X.(1
+\oplus X)$ (which is isomorphic to $\nat$) or $\mu X.(1 \oplus A
+\otimes X)_{A:=\nat}$ (which denotes the type of lists of natural
+numbers), or $\mu X.\{\headname : \nat \,\&\, \tailname : (1 \oplus X)\}$ (which
+denotes the negative presentation of lists).
+
+We restricted the rules to the case of recursion on a variable
+$X:\sort{l}$. This could be extended to mutual recursion on a tuple of
+type variable. This could be extended as well to a recursion on
+arities, i.e. on variables $X$ of type
+$\mkprod{a_1}{A_1}{...\mkprod{a_n}{A_n}{\sort{l}}}$ (in which case,
+one would also provide an instance for the arity).
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{lcll}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \mu X.A ~|~ \mu x.t\\
+P & ::= & \ldots ~|~ (a:X) \otimes P\\
+N & ::= & \ldots ~|~ X\\
+  \end{array}
+\\
+\\
+\mbox{\em type former}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \mbox{$A$ is a $( ... \oplus ...)$ or $\{ ... \,\&\, ...\}$ type}}
+     {\Gamma \vdash \mu X. A : \sort{l}}
+\\
+\\
+\mbox{\em introduction rule}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t : \Sub{A}{X}{\mu X. A}} 
+     {\Gamma \vdash \inmu{t} : \mu X.A}
+\\
+\\
+\mbox{\em elimination rule}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash P : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : P \qquad \mbox{$x$ ``guarded'' in $t$ by a pos. or neg. destructor}}
+     {\Gamma \vdash \appmu{\mu x.t}{a}{v} : \Sub{P}{a}{v}}
+\\
+\\
+\mbox{\em reduction rules}
+\\
+\\
+%% \seqr{\recnegbeta}
+%%      {\begin{array}{ll}
+%%       \Gamma \vdash C : \sort{l} \qquad \Gamma \vdashposinh w : P \qquad \Gamma, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma, c : C \vdash t_i : \Sub{N_i}{\rho}{w} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : C\\
+%%       \Gamma, c : C \vdash t : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}\\
+%%       \Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash B : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : B \qquad \mbox{$x$ guarded in $t$}\\
+%%       \end{array}}
+%%      {\Gamma \vdash \appmu{\mu x.t}{a}{\mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v}} \reduce \Sub{\Sub{t}{a}{\mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v}}}{x a}{\appmu{\mu x.t}{a}{a}} : \Sub{B}{a}{\appmu{\mu x.t}{a}{\mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v}}}}
+\seqr{\recbeta}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash B : \sort{l} \qquad \Gamma \vdash v : \Sub{A}{X}{\mu X. A} \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : B \qquad \mbox{$x$ guarded in $t$}}
+     {\Gamma \vdash \appmu{\mu x.t}{a}{\inmu{v}} \reduce \Sub{\Sub{t}{a}{v}}{x a}{\appmu{\mu x.t}{a}{a}} : \Sub{B}{a}{\appmu{\mu x.t}{a}{\inmu{v}}}}
+\\
+\\
+%% \seqr{\recposbeta}
+%%      {\begin{array}{ll}\Gamma, X : \sort{l} \vdash A : \sort{l} & \qquad \Gamma, a : \mu X. A \vdash P : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : P \qquad \mbox{$x$ guarded in $t$}\\
+%% \Gamma \vdash w : P
+%% \end{array}}
+%%      {\Gamma \vdash \appmu{\mu x.t}{a}{c_i\,w} \reduce \Sub{\Sub{t}{a}{c_i\,w}}{x a}{\appmu{\mu x.t}{a}{a}} : P(\appmu{\mu x.t}{a}{c_i\,w})}
+%% \\
+%% \\
+\mbox{\em observational rule}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash P : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : P \qquad \mbox{$x$ guarded in $t$}}
+     {\Gamma \vdash \appmu{\mu x.t}{a}{v} \reduce \Sub{\Sub{t}{a}{v}}{x a}{\appmu{\mu x.t}{a}{a}} : A}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A \equiv A' : \sort{l}}
+     {\Gamma \vdash \mu X. A \equiv \mu X. A' : \sort{l}}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash P : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : P \qquad \mbox{$x$ guarded in $t$}}
+     {\Gamma \vdash \appmu{\mu x.t}{a}{v} \equiv \appmu{\mu x.t'}{a}{v'} : \Sub{P}{a}{v}}
+\end{array}
+$
+}}
+\caption{General typing and computational rules for recursive types}
+\label{fig:recursivetypetheory}
+\end{figure*}
+
+\section{Co-recursive types}
+
+\newcommand{\appnu}[3]{(#1)_{#2}^{#3}}
+\newcommand{\outnu}[1]{\mathsf{out}\,#1}
+
+We give a syntax for co-recursive types, i.e. for types defined as
+greatest type generated by its constructors.
+
+\begin{figure*}
+\centerline{\framebox{$
+\begin{array}{c}
+\mbox{\em extended syntax of expressions}
+\\
+\\
+  \begin{array}{lcll}
+t, u, v, A, B, p, q & ::= & \ldots ~|~ \nu X.A ~|~ \appnu{\nu x.t}{c}{v}\\
+  \end{array}
+\\
+\\
+\mbox{\em type formers}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \mbox{$A$ is a $( ... \oplus ...)$ or $\{ ... \,\&\, ...\}$ type}}
+     {\Gamma \vdash \nu X. A : \sort{l}}
+\\
+\\
+\mbox{\em introduction rule}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \Sub{A}{X}{\nu X. A} \qquad \Gamma \vdash v : C \qquad \mbox{$x$ ``guarded'' in $t$ by a pos. or neg. constructor}}
+     {\Gamma \vdash \appnu{\nu x.t}{c}{v} : \nu X.A}
+\\
+\\
+\mbox{\em elimination rule}
+\\
+\\
+\seqr{}
+     {\Gamma \vdash t : \nu X.A}
+     {\Gamma \vdash \outnu{t} : \Sub{A}{X}{\nu X.A}}
+\\
+\\
+\mbox{\em reduction rule}
+\\
+\\
+\seqr{\corecbeta}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \Sub{A}{X}{\nu X. A} \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}}
+     {\Gamma \vdash \outnu{\appnu{\nu x.t}{c}{v}} \reduce \Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}} : \Sub{A}{X}{\nu X. A}}
+%% \seqr{\corecnegbeta}
+%%      {\begin{array}{ll}
+%%       \mbox{we let $A \defeq \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}$}\\
+%%       \Gamma, X : \sort{l} \vdashposinh w : P \qquad \Gamma, X : \sort{l}, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n)\\
+%%       \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \nu X. A \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}
+%%       \end{array}}
+%%      {\Gamma \vdash \destructor{d_i}{\appnu{\nu x.t}{c}{v}} \reduce \destructor{d_i}{\Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}}} : N_i}
+%% \\
+%% \\
+%% \seqr{\corecposbeta}
+%%      {\begin{array}{ll}
+%%       \mbox{we let $A \defeq \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P}$}\\
+%%       \Gamma, X : \sort{l} \vdash v : A \qquad \Gamma, a : A \vdash B : \sort{l} \qquad \Gamma, X : \sort{l}, \rho : P_i \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n)\\
+%%       \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \nu X. A \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}
+%%       \end{array}}
+%%      {\Gamma \vdash \begin{array}{l}\case{\appnu{\nu x.t}{c}{v}}{[ c_1 \rho \mapsto t'_1 | ... | c_n \rho \mapsto t'_n ]} \reduce  \case{\Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}}}{[ c_1 \rho \mapsto t'_1 | ... | c_n \rho \mapsto t'_n ]}\end{array} : P(\Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}})}
+\\
+\\
+\mbox{\em observational rule}
+\\
+\\
+\seqr{\negeta}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \Sub{A}{X}{\nu X. A} \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \appnu{\nu x.t}{c}{v} \reduce \Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}} : \Sub{A}{X}{\nu X. A}}
+\\
+\\
+\mbox{\em congruence rules}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A \equiv A' : \sort{l}}
+     {\Gamma \vdash \nu X. A \equiv \nu X. A' : \sort{l}}
+\\
+\\
+\seqr{}
+     {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t \equiv t' : \Sub{A}{X}{\nu X. A} \qquad \Gamma \vdash v \equiv v' : C}
+     {\Gamma \vdash \appnu{\nu x.t}{c}{v} \equiv \appnu{\nu x.t'}{c}{v'} : \nu X. A}
+\end{array}
+$
+}}
+\caption{General typing and computational rules for co-recursive types}
+\label{fig:corecursivetypetheory}
 \end{figure*}
 
 \end{document}
