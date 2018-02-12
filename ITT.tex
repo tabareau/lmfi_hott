@@ -923,25 +923,11 @@ N & ::= & \ldots ~|~ X\\
 \mbox{\em reduction rule}
 \\
 \\
-%% \seqr{\recnegbeta}
-%%      {\begin{array}{ll}
-%%       \Gamma \vdash C : \sort{l} \qquad \Gamma \vdashposinh w : P \qquad \Gamma, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n) \qquad \Gamma, c : C \vdash t_i : \Sub{N_i}{\rho}{w} \quad (1 \leq i \leq n) \qquad \Gamma \vdash v : C\\
-%%       \Gamma, c : C \vdash t : \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}\\
-%%       \Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash B : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : B \qquad \mbox{$x$ guarded in $t$}\\
-%%       \end{array}}
-%%      {\Gamma \vdash \appmu{\mu x.t}{a}{\mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v}} \reduce \Sub{\Sub{t}{a}{\mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v}}}{x a}{\appmu{\mu x.t}{a}{a}} : \Sub{B}{a}{\appmu{\mu x.t}{a}{\mkneg{d_1 \mapsto t_1; ... ; d_n \mapsto t_n}{c}{v}}}}
 \seqr{\recbeta}
      {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma, a : \mu X. A \vdash B : \sort{l} \qquad \Gamma \vdash v : \Sub{A}{X}{\mu X. A} \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : B \qquad \mbox{$x$ guarded from $a$ in $t$}}
      {\Gamma \vdash \appmu{\mu x.t}{a}{\inmu{v}} \reduce \Sub{\Sub{t}{a}{v}}{x a}{\appmu{\mu x.t}{a}{a}} : \Sub{B}{a}{\appmu{\mu x.t}{a}{\inmu{v}}}}
 \\
 \\
-%% \seqr{\recposbeta}
-%%      {\begin{array}{ll}\Gamma, X : \sort{l} \vdash A : \sort{l} & \qquad \Gamma, a : \mu X. A \vdash P : \sort{l} \qquad \Gamma \vdash v : \mu X. A \qquad \Gamma, x : \mkprod{a}{\mu X. A}{P}, a : \Sub{A}{X}{\mu X. A} \vdash t : P \qquad \mbox{$x$ guarded in $t$}\\
-%% \Gamma \vdash w : P
-%% \end{array}}
-%%      {\Gamma \vdash \appmu{\mu x.t}{a}{c_i\,w} \reduce \Sub{\Sub{t}{a}{c_i\,w}}{x a}{\appmu{\mu x.t}{a}{a}} : P(\appmu{\mu x.t}{a}{c_i\,w})}
-%% \\
-%% \\
 \mbox{\em observational rule}
 \\
 \\
@@ -1020,22 +1006,6 @@ t, u, v, A, B, p, q & ::= & \ldots ~|~ \nu X.A ~|~ \appnu{\nu x.t}{c}{v}\\
 \seqr{\corecbeta}
      {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \Sub{A}{X}{\nu X. A} \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}}
      {\Gamma \vdash \outnu{\appnu{\nu x.t}{c}{v}} \reduce \Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}} : \Sub{A}{X}{\nu X. A}}
-%% \seqr{\corecnegbeta}
-%%      {\begin{array}{ll}
-%%       \mbox{we let $A \defeq \mknegtype{d_1 : N_1 \,\&\, ... \,\&\, d_n : N_n}{\rho}{w}{P}$}\\
-%%       \Gamma, X : \sort{l} \vdashposinh w : P \qquad \Gamma, X : \sort{l}, \rho : P \vdash N_i : \sort{l} \quad (1 \leq i \leq n)\\
-%%       \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \nu X. A \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}
-%%       \end{array}}
-%%      {\Gamma \vdash \destructor{d_i}{\appnu{\nu x.t}{c}{v}} \reduce \destructor{d_i}{\Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}}} : N_i}
-%% \\
-%% \\
-%% \seqr{\corecposbeta}
-%%      {\begin{array}{ll}
-%%       \mbox{we let $A \defeq \mkpostype{(c_1 : P_1 \oplus ... \oplus c_n : P_n)}{\rho}{w}{P}$}\\
-%%       \Gamma, X : \sort{l} \vdash v : A \qquad \Gamma, a : A \vdash B : \sort{l} \qquad \Gamma, X : \sort{l}, \rho : P_i \vdash t_i : \Sub{B}{a}{c_i\,\rho} \quad (1 \leq i \leq n)\\
-%%       \Gamma \vdash C : \sort{l} \qquad \Gamma, x : \mkimp{C}{\nu X. A}, c : C \vdash t : \nu X. A \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}
-%%       \end{array}}
-%%      {\Gamma \vdash \begin{array}{l}\case{\appnu{\nu x.t}{c}{v}}{[ c_1 \rho \mapsto t'_1 | ... | c_n \rho \mapsto t'_n ]} \reduce  \case{\Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}}}{[ c_1 \rho \mapsto t'_1 | ... | c_n \rho \mapsto t'_n ]}\end{array} : P(\Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{\nu x.t}{c}{c}})}
 \\
 \\
 \mbox{\em observational rule}
