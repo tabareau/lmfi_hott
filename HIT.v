@@ -1,62 +1,62 @@
 Set Universe Polymorphism.
 
-Require Import Trunc Hedberg. 
+Require Import Trunc Hedberg Int. 
 
 Definition apD {A} {B : A -> Type} (f:forall x, B x) {x y:A} (p:x = y) :
   p # (f x) = f y
   := match p with refl _ => refl _ end.
 
 
-Module Export Interval.
-  Private Inductive Int : Type :=
-  | zero : Int
-  | one : Int.
+Module Export Intervalerval.
+  Private Inductive Interval : Type :=
+  | zeroI : Interval
+  | oneI : Interval.
 
-  Axiom seg : zero = one. 
+  Axiom seg : zeroI = oneI. 
   
-  Definition Int_ind
-             (P: Int -> Type) 
-             (b0: P zero)
-             (b1: P one)
+  Definition Interval_ind
+             (P: Interval -> Type) 
+             (b0: P zeroI)
+             (b1: P oneI)
              (s : seg # b0 = b1)
   : forall i, P i
     := fun i => match i with
-                | zero => b0
-                | one => b1
+                | zeroI => b0
+                | oneI => b1
                 end.
 
-   Axiom Int_ind_seg : forall 
-             (P: Int -> Type) 
-             (b0: P zero)
-             (b1: P one)
+   Axiom Interval_ind_seg : forall 
+             (P: Interval -> Type) 
+             (b0: P zeroI)
+             (b1: P oneI)
              (s : seg # b0 = b1),
-  apD (Int_ind P b0 b1 s) seg = s.
+  apD (Interval_ind P b0 b1 s) seg = s.
    
-End Interval.
+End Intervalerval.
 
 
-Section Int_computation. 
+Section Interval_computation. 
 
-  Variable i : Int. 
-  Variable P : Int -> Type. 
-  Variable b0 : P zero.
-  Variable b1 : P one.
+  Variable i : Interval. 
+  Variable P : Interval -> Type. 
+  Variable b0 : P zeroI.
+  Variable b1 : P oneI.
   Variable s : seg # b0 = b1.                 
   
   Eval cbn in
-      Int_ind P b0 b1 s zero.
+      Interval_ind P b0 b1 s zeroI.
 
   Eval cbn in
-      Int_ind P b0 b1 s one.
+      Interval_ind P b0 b1 s oneI.
 
-End Int_computation.
+End Interval_computation.
 
-Definition Int_IsContr : IsContr Int.
+Definition Interval_IsContr : IsContr Interval.
 Proof.
   unshelve econstructor.
-  - exact zero.
-  - unshelve refine (Int_ind _ _ _ _).
-    + exact (refl zero).
+  - exact zeroI.
+  - unshelve refine (Interval_ind _ _ _ _).
+    + exact (refl zeroI).
     + exact seg.
     + apply transport_paths_r.
 Defined. 
@@ -67,12 +67,12 @@ Proof.
   destruct p.  exact (refl y).
 Defined.
 
-Definition Int_funext (A : Type)  (B :A -> Type) (f g : forall a, B a):
+Definition Interval_funext (A : Type)  (B :A -> Type) (f g : forall a, B a):
        f == g -> f = g.
 Proof.
   intro p.
-  pose (pp := fun x => Int_ind (fun _ => B x) (f x) (g x) (transport_const _ _ @ p x)).
-  pose (q := (fun i x => pp x i) : Int -> (forall x, B x)).
+  pose (pp := fun x => Interval_ind (fun _ => B x) (f x) (g x) (transport_const _ _ @ p x)).
+  pose (q := (fun i x => pp x i) : Interval -> (forall x, B x)).
   exact (ap q seg).
 Defined.
 
@@ -242,6 +242,114 @@ Proof.
         rewrite inv2. rewrite Susp_rec_eq. 
         rewrite <- concat_p_pp. cbn. apply concat_Vp.
 Defined.
+
+
+Definition IsEquiv_id {A : Type} : IsEquiv (fun x:A => x).
+  unshelve econstructor.
+  - exact id.
+  - reflexivity. 
+  - reflexivity. 
+  - reflexivity. 
+Defined.
+
+
+
+Definition S1_code : S1 -> Type
+  := S1_rec _ Int (path_universe succ_int).
+
+(* Transporting in the codes fibration is the successor autoequivalence. *)
+
+
+Definition transport_S1_code_loop (z : Int)
+  : transport S1_code loop z = succ_int z.
+Proof.
+  refine ((transport_ap id S1_code loop z)^ @ _).
+  unfold S1_code. rewrite S1_rec_eq.
+  apply transport_path_universe.
+Defined.
+
+Definition transport_S1_code_loopV {funext:Funext} (z : Int)
+  : transport S1_code loop^ z = pred_int z.
+Proof.
+  refine ((transport_ap id S1_code loop^ z) ^@ _).
+  rewrite ap_V.
+  unfold S1_code; rewrite S1_rec_eq.
+  rewrite <- (path_universe_V (funext := funext) succ_int).
+  apply transport_path_universe.
+Defined.
+
+(* Encode by transporting *)
+
+Definition S1_encode (x:S1) : (base = x) -> S1_code x
+  := fun p => p # zero.
+
+(* Decode by iterating loop. *)
+
+Definition transport_arrow {A : Type} {B C : A -> Type}
+  {x1 x2 : A} (p : x1 = x2) (f : B x1 -> C x1) (y : B x2)
+  : (transport (fun x => B x -> C x) p f) y  =  p # (f (p^ # y)).
+Proof.
+  destruct p. reflexivity.
+Defined.
+
+Definition S1_decode {funext:Funext}  (x:S1) : S1_code x -> (base = x).
+Proof.
+  revert x; refine (S1_ind (fun x => S1_code x -> base = x) (loopexp loop) _).
+  apply funext; intros z; simpl in z.
+  refine (transport_arrow _ _ _ @ _).
+  refine (transport_paths_r loop _ @ _).
+  rewrite (transport_S1_code_loopV (funext:=funext)).
+  destruct z as [[|n] | | [|n]]; simpl.
+  rewrite <- concat_p_pp. rewrite concat_Vp. apply concat_p1.
+  repeat rewrite <- concat_p_pp. rewrite concat_Vp.
+  rewrite concat_p1. reflexivity. 
+  apply concat_Vp. reflexivity. 
+  reflexivity.
+Defined.
+
+(* The nontrivial part of the proof that decode and encode are equivalences is showing that decoding followed by encoding is the identity on the fibers over [base]. *)
+
+
+Definition S1_encode_loopexp {funext:Funext} (z:Int)
+  : S1_encode base (loopexp loop z) = z.
+Proof.
+  destruct z as [n | | n]; unfold S1_encode.
+  induction n; simpl in *.
+  refine (moveR_transport_V _ loop _ _ _).
+  apply inverse. apply transport_S1_code_loop.
+  rewrite transport_pp.
+  refine (moveR_transport_V _ loop _ _ _).
+  refine (_ @ (transport_S1_code_loop _)^).
+  assumption.
+  reflexivity.
+  induction n; simpl in *.
+  apply transport_S1_code_loop.
+  rewrite transport_pp.
+  refine (moveR_transport_p _ loop _ _ _).
+  refine (_ @ (transport_S1_code_loopV _)^).
+  assumption.
+  auto. 
+Defined.
+
+(* Now we put it together. *)
+
+Definition S1_encode_isequiv {funext:Funext} (x:S1) : IsEquiv (S1_encode x).
+Proof.
+  refine (isequiv_adjointify (S1_encode x) (S1_decode x) _ _).
+  (* This side is trivial by path induction. *)
+  intros []. cbn. reflexivity.
+
+  (* Here we induct on [x:S1].  We just did the case when [x] is [base]. *)
+  refine (S1_ind (fun x => forall x0 : S1_code x, S1_encode x (S1_decode x x0) = x0)
+    S1_encode_loopexp _ _).
+  (* What remains is easy since [Int] is known to be a set. *)
+  apply funext. intros z. apply (hset_int (funext:=funext)).
+  Unshelve. all : auto. 
+Defined.
+
+Definition equiv_loopS1_int {funext:Funext} : (base = base) ≃ Int
+:= BuildEquiv _ _ (S1_encode base) (S1_encode_isequiv (funext:=funext) base).
+
 
 Module Export CylinderHIT.
   Private Inductive Cyl {X Y} (f: X -> Y) : Y -> Type :=

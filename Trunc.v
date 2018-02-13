@@ -143,6 +143,23 @@ Proof.
   rewrite <- inv2. rewrite e. reflexivity.
 Defined.
 
+Definition moveR_transport_V {A : Type} (P : A -> Type) {x y : A}
+  (p : y = x) (u : P x) (v : P y)
+  : u = p # v -> p^ # u = v.
+Proof.
+  destruct p.
+  exact id.
+Defined.
+
+Definition moveR_transport_p {A : Type} (P : A -> Type) {x y : A}
+  (p : x = y) (u : P x) (v : P y)
+  : u = p^ # v -> p # u = v.
+Proof.
+  destruct p.
+  exact id.
+Defined.
+
+
 Definition concat_A1p {A : Type} {f : A -> A} (p : forall x, f x = x) {x y : A} (q : x = y) :
   (ap f q) @ (p y) = (p x) @ q.
   destruct q. cbn. apply inverse. apply concat_p1.
@@ -638,3 +655,67 @@ Proof.
     cbn. apply path_sigma_uncurried. cbn. 
     unshelve econstructor; apply e_retr. 
 Defined. 
+
+
+
+Definition transport_pV {A : Type} (P : A -> Type) {x y : A} (p : x = y) (z : P y)
+  : p # p^ # z = z.
+  destruct p. reflexivity. 
+Defined.
+
+Definition transport_Vp {A : Type} (P : A -> Type) {x y : A} (p : x = y) (z : P x)
+  : p^ # p # z = z.
+  destruct p. reflexivity. 
+Defined.
+
+Instance isequiv_path {A B : Type} (p : A = B)
+  : IsEquiv (transport (fun X:Type => X) p).
+refine (BuildIsEquiv _ _ _ (transport (fun X:Type => X) p^)
+                     (transport_Vp id p)
+                     (transport_pV id p)
+  _).
+destruct p. reflexivity. 
+Defined.
+
+Definition equiv_path (A B : Type) (p : A = B) : A ≃ B
+  := BuildEquiv _ _ (transport (fun X:Type => X) p) _.
+
+Axiom isequiv_equiv_path : forall (A B : Type), IsEquiv (equiv_path A B).
+
+Existing Instance isequiv_equiv_path.
+
+Definition path_universe_uncurried {A B : Type} (f : A ≃ B) : A = B
+  := Equiv_inverse (BuildEquiv _ _ (equiv_path A B) _) f.
+
+Definition path_universe {A B : Type} (f : A -> B) {feq : IsEquiv f} : (A = B)
+  := path_universe_uncurried (BuildEquiv _ _ f feq).
+
+
+Definition transport_path_universe_uncurried
+           {A B : Type} (f : A ≃ B) (z : A)
+  : transport (fun X:Type => X) (path_universe_uncurried f) z = f z.
+Proof.
+  pose (ap e_fun (e_retr (equiv_path A B) f)).
+  exact (apD10 i z). 
+Defined.
+
+Definition transport_path_universe
+           {A B : Type} (f : A -> B) {feq : IsEquiv f} (z : A)
+  : transport (fun X:Type => X) (path_universe f) z = f z
+  := transport_path_universe_uncurried (BuildEquiv A B f feq) z.
+
+Definition path_universe_V_uncurried {funext :Funext} {A B : Type} (f : A ≃ B)
+  : path_universe_uncurried (Equiv_inverse f) = (path_universe_uncurried f)^.
+Proof.
+  revert f.
+  (* equiv_intro ((equiv_path_universe A B)^-1) p. simpl. *)
+  (* transitivity (p^). *)
+  (*   2: exact (inverse2 (eisretr (equiv_path_universe A B) p)^). *)
+  (* transitivity (path_universe_uncurried (equiv_path B A p^)). *)
+  (*   by refine (ap _ (equiv_path_V A B p)^). *)
+  (* by refine (eissect (equiv_path B A) p^). *)
+Admitted. 
+
+Definition path_universe_V {funext:Funext} {A B} `(f : A -> B) `{IsEquiv A B f}
+  : path_universe (Equiv_inverse (BuildEquiv _ _ f _)) = (path_universe f)^
+  := path_universe_V_uncurried (funext:=funext) (BuildEquiv A B f _).
