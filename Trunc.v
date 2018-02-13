@@ -174,6 +174,18 @@ Definition ap2 {A A' B:Type} (f:A -> A' -> B) {x y:A} (p:x = y)
   := match p with refl _ => match q with refl _ => refl _ end end.
 
 
+Definition transport_paths_Fl {A B : Type} {f g : A -> B} {x1 x2 : A}
+  (p : x1 = x2) (q : f x1 = g x1)
+  : transport (fun x => f x = g x) p q = (ap f p)^ @ q @ (ap g p).
+Proof.
+  destruct p. cbn. apply inverse. apply concat_p1.
+Defined.
+
+Definition concat_V A (x y z:A) (e:x=y) (e' : y = z) : (e @ e')^ =
+                                                       e' ^@ e ^.
+destruct e, e'; reflexivity.
+Defined. 
+
 (* Structure of equality on dependent sums *)
 
 Definition path_sigma_uncurried {A : Type} (P : A -> Type) (u v : {x:A & P x})
