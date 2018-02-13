@@ -238,6 +238,16 @@ Proof.
   destruct p; reflexivity.
 Defined.
 
+
+(* How transport acts on arrows *)
+
+Definition transport_arrow {A : Type} {B C : A -> Type}
+  {x1 x2 : A} (p : x1 = x2) (f : B x1 -> C x1) (y : B x2)
+  : (transport (fun x => B x -> C x) p f) y  =  p # (f (p^ # y)).
+Proof.
+  destruct p. reflexivity.
+Defined.
+
 (* How transport acts on equality type *)
 
 Definition transport_paths_l {A : Type} {x1 x2 y : A} (p : x1 = x2) (q : x1 = y)

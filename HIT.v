@@ -253,7 +253,6 @@ Definition IsEquiv_id {A : Type} : IsEquiv (fun x:A => x).
 Defined.
 
 
-
 Definition S1_code : S1 -> Type
   := S1_rec _ Int (path_universe succ_int).
 
@@ -285,12 +284,6 @@ Definition S1_encode (x:S1) : (base = x) -> S1_code x
 
 (* Decode by iterating loop. *)
 
-Definition transport_arrow {A : Type} {B C : A -> Type}
-  {x1 x2 : A} (p : x1 = x2) (f : B x1 -> C x1) (y : B x2)
-  : (transport (fun x => B x -> C x) p f) y  =  p # (f (p^ # y)).
-Proof.
-  destruct p. reflexivity.
-Defined.
 
 Definition S1_decode {funext:Funext}  (x:S1) : S1_code x -> (base = x).
 Proof.
