@@ -272,22 +272,6 @@ Arguments identity {!C%category} / x%object : rename.
 Arguments compose {!C%category} / {s d d'}%object (m1 m2)%morphism : rename.
 
 
-
-(* Definition Build_Category *)
-(*            object morphism compose identity *)
-(*            associativity left_identity right_identity *)
-(*   := @Build_Category' *)
-(*        object *)
-(*        morphism *)
-(*        compose *)
-(*        identity *)
-(*        associativity *)
-(*        (fun _ _ _ _ _ _ _ => Einverse (associativity _ _ _ _ _ _ _)) *)
-(*        left_identity *)
-(*        right_identity *)
-(*        (fun _ => left_identity _ _ _). *)
-
-
 Global Infix "∘" := compose : morphism_scope.
 Global Notation "x --> y" := (morphism _ x y) (at level 99, right associativity, y at level 200) : type_scope.
 Global Notation "1" := (identity _) : morphism_scope.
@@ -376,7 +360,9 @@ Defined.
 
 Definition two_out_of_three {C: Category} (W: forall {x y: C}, (x --> y) -> Type)
   := forall (x y z: C) (f: x --> y) (g: y --> z),
-    (W f -> W g -> W (g ∘ f)) × (W g -> W (g ∘ f) -> W f) × (W (g ∘ f) -> W f -> W g).
+    (W f -> W g -> W (g ∘ f)) ×
+    (W g -> W (g ∘ f) -> W f) ×
+    (W (g ∘ f) -> W f -> W g).
 
 Record model_structure (C: Category) :=
   { W: forall {x y: C}, (x --> y) -> Type;
@@ -387,6 +373,7 @@ Record model_structure (C: Category) :=
     AC_F: weak_factorization_system (fun x y f => W f × C f) (@F)
   }.
 
+(* Addition of fibrant types and fibrant equality *)
 
 Axiom Fibrant : Type -> Type.
 Existing Class Fibrant.
@@ -411,10 +398,6 @@ Axiom Fibrant_forall
 
 Axiom Fibrant_sigma
   : forall A (B: A -> Type), Fibrant A -> (forall x, Fibrant (B x)) -> Fibrant (sigT B).
-
-Axiom Fibrant_Type : Fibrant Type.
-
-(* Axiom Fibrant_TypeF : Fibrant FType. *)
 
 Axiom Fibrant_unit : Fibrant unit.
 
@@ -459,8 +442,7 @@ Notation "x = y" := (x = y :> _) : type_scope.
 
 Notation "f == g" := (forall x, f x = g x) (at level 70, no associativity) : type_scope.
 
-
-
+(* Properties of fibrant equality *)
 
 Definition Eq_to_paths {A : Type} {FibA: Fibrant A} {x y : A} (p : x ≡ y) : x = y :=
   match p with
@@ -498,49 +480,6 @@ Record Contr (A: Type) {FibA: Fibrant A} :=
 
 Arguments Contr _ {_}.
 Arguments contr _ {_} _ _.
-
-(* ****** destruct_path tactic ****** *)
-
-(* auxiliary tactics *)
-Definition myid : forall A, A -> A := fun _ x => x.
-Ltac mark H := let t := type of H in change (myid _ t) in H.
-Ltac unmark H := let t := type of H in
-                 match t with
-                 | myid _ ?tt => change tt in H
-                 end.
-Hint Unfold myid : typeclass_instances.
-
-(* If p : x = y  then destruct_path revert all hypothesis depending on x and y.  *)
-(* Then, it applies paths_ind and then it reintroduce reverted hypothesis. *)
-Ltac destruct_path p :=
-  let t := type of p in
-  match t with
-    @paths _ ?x ?y =>
-    mark p;
-      repeat match goal with
-             | [X: context[y] |- _] =>
-               match type of X with
-               | myid _ _ => fail 1
-               | _ => revert X;
-                   match goal with
-                   | |- forall (X: ?T), ?G => change (forall (X: myid _ T), G)
-                   end
-               end
-             end;
-      unmark p;
-      generalize y p; clear p y;
-      match goal with
-      | |- forall y p, @?P y p => let y := fresh y in
-                                  let p := fresh p in
-                                  intros y p; refine (paths_ind x P _ y p)
-      end;
-      repeat match goal with
-             | |- forall (H: myid _ _), _ => let H := fresh H in
-                                             intro H; unfold myid in H
-             end
-  end.
-
-
 
 
 Definition ap {A B: Type} {FibA: Fibrant A} {FibB: Fibrant B} (f: A -> B) {x y: A} (p: x = y)
@@ -776,7 +715,7 @@ Defined.
 
 
 
-(* Equivalences *)
+(* Equivalences for univalent equality *)
 
 Record IsEquiv {A B} {FibA: Fibrant A} {FibB: Fibrant B} (f: A -> B) :=
   { equiv_inv : B -> A ;
@@ -805,7 +744,6 @@ Proof.
   rewrite concat_pV; rewrite concat_1p.
   exact 1.
 Defined.
-(* Qed. *)
 
 Definition isequiv_compose {A B C} {FibA: Fibrant A} {FibB: Fibrant B} {FibC: Fibrant C}
            {f: A -> B} (Hf: IsEquiv f) {g: B -> C} (Hg: IsEquiv g)
@@ -846,7 +784,7 @@ Proof.
 Defined.
 
 
-(* FType *) 
+(* FType is category *) 
 
 Definition FTYPE : Category.
 Proof.
@@ -912,7 +850,9 @@ Definition LP_TYPE_FTYPE {A B A' B': TypeF} {f: A -> B} {g: A' -> B'}
   auto.
 Defined.
 
-Record IsFibration {A B} (f : A -> B) := (* F *)
+(* Definition of Fibrations *)
+
+Record IsFibration {A B} (f : A -> B) := 
   { fib_A : Type ;
     fib_P : fib_A -> Type ;
     fib_Fib : FibrantF fib_P;
@@ -924,15 +864,15 @@ Notation Fib := @IsFibration.
 
 Definition fiber {A B} (f: A -> B) := fun y => ∃ x, f x = y.
 
-Let f' {A B} (f: A -> B) : A -> ∃ y, fiber f y
+Let inf_fib {A B} (f: A -> B) : A -> ∃ y, fiber f y
   := fun x => (f x ; x ; 1).
 
 Notation "` A" := (Build_TypeF A) (at level 10).
 
 
 
-Definition LP_f'_F {A B: TypeF} (f: A -> B)
-  : LLP (C:=FTYPE) Fib (f' f : `_ -> `_).
+Definition LP_inf_fib_F {A B: TypeF} (f: A -> B)
+  : LLP (C:=FTYPE) Fib (inf_fib f : `_ -> `_).
 Proof.
   intros A'' B'' g [B' P HP Hg]. apply LP_TYPE_FTYPE.
   refine(LP_Retract (retract_id _) Hg _).
@@ -954,20 +894,20 @@ Definition wfs_AC_F : weak_factorization_system (@LLP FTYPE (@IsFibration)) (@Is
 Proof.
   unshelve eapply Build_weak_factorization_system; cbn.
   - intros A B f. exists (` (∃ y, fiber f y)).
-    exists (f' f). exists (@π1 _ _).
+    exists (inf_fib f). exists (@π1 _ _).
     split; [reflexivity|]. split.
-    (* + apply LP_f'_F.  bug?? *)
-    + apply (LP_f'_F _).
+    (* + apply LP_inf_fib_F.  bug?? *)
+    + apply (LP_inf_fib_F _).
     + refine (Build_IsFibration _ (retract_id _)).
   - intros A B f; split; auto.
   - intros A B f; split; intros Hf.
     + intros A' B' g Hg. now apply Hg.
-    + assert (LP (C:=FTYPE) (f' f: `_ -> `_) f). {
-        apply Hf. apply LP_f'_F. }
+    + assert (LP (C:=FTYPE) (inf_fib f: `_ -> `_) f). {
+        apply Hf. apply LP_inf_fib_F. }
       cbn in X. unfold LP in X. 
       specialize (X idmap (@π1 _ _) E1); cbn in X. destruct X as [g [Hg1 Hg2]].
       refine (Build_IsFibration (fiber f) _).
-      refine (Build_Retract (f' f) g idmap idmap _ _ _ _);
+      refine (Build_Retract (inf_fib f) g idmap idmap _ _ _ _);
         intro; try reflexivity; cbn.
       exact (Eap10 Hg1 _). exact (Eap10 Hg2^E _).
 Defined.
@@ -1097,12 +1037,12 @@ Defined.
 
 
 Definition weak_eq_retract {A B A' B': TypeF}
-           (f: A -> B) (f': A' -> B')
-           (Hf': f' RetractOf f) (Hf: IsEquiv f)
-  : IsEquiv f'.
+           (f: A -> B) (inf_fib: A' -> B')
+           (Hinf_fib: inf_fib RetractOf f) (Hf: IsEquiv f)
+  : IsEquiv inf_fib.
 Proof.
   destruct Hf as [g Hg1 Hg2].
-  destruct Hf' as [s r s' r' sr sr' Hf1 Hf2].
+  destruct Hinf_fib as [s r s' r' sr sr' Hf1 Hf2].
   refine (isequiv_adjointify (r o g o s') _ _); intro.
   - rewrite <- Hf2. refine(ap _ (Hg1 _) @ _). apply Eq_to_paths, sr'.
   - rewrite <- Hf1. refine(ap _ (Hg2 _) @ _). apply Eq_to_paths, sr.
@@ -1143,20 +1083,20 @@ Proof.
         rewrite (contr _ _ w). exact 1.
     + destruct H as [B' P FibP H1 H2]. econstructor. eassumption. exact H2.
   - refine(Build_AFib (fiber f) _ _).
-    + pose proof (two_out_of_three_weak_equiv _ _ _ (f' f: `_ -> `_) (pr1: `_ -> `_)); cbn in X.
+    + pose proof (two_out_of_three_weak_equiv _ _ _ (inf_fib f: `_ -> `_) (pr1: `_ -> `_)); cbn in X.
       destruct X as [_ [_ H2]]. specialize (H2 (fst H)).
       refine (AFib_aux (P:=fiber f) (H2 _)).
       clear H2 H. destruct A, B.
       unshelve eapply isequiv_adjointify.
       * exact (fun w => w.2.1).
-      * intros [y [x p]]; cbn. unfold f'.
+      * intros [y [x p]]; cbn. unfold inf_fib.
         revert y p. unshelve refine (paths_ind _ _ _).
         exact 1.
       * intro; exact 1.
-    + assert (LP (C:=FTYPE) (f' f: `_ -> `_) f). {
-        apply LP_f'_F. apply H. }
+    + assert (LP (C:=FTYPE) (inf_fib f: `_ -> `_) f). {
+        apply LP_inf_fib_F. apply H. }
       specialize (X idmap pr1 E1); cbn in X. destruct X as [g [Hg1 Hg2]].
-      refine (Build_Retract (f' f) g idmap idmap _ _ _ _);
+      refine (Build_Retract (inf_fib f) g idmap idmap _ _ _ _);
         intro; try reflexivity; cbn.
       exact (Eap10 Hg1 _). exact (Eap10 Hg2^E _).
 Defined.
@@ -1166,7 +1106,7 @@ Definition LLPAFib_ok {A B: TypeF} (f: A -> B)
 Proof.
   split.
   - intro H; split.
-    + unshelve refine(let X := H _ B (pr1: `_ -> `_) _ (f' f) idmap E1 in _).
+    + unshelve refine(let X := H _ B (pr1: `_ -> `_) _ (inf_fib f) idmap E1 in _).
       refine (Build_IsFibration _ (retract_id _)).
       destruct X as [g [Hg1 Hg2]]; cbn in *.
       destruct A, B. unshelve eapply isequiv_adjointify.
@@ -1176,7 +1116,7 @@ Proof.
       * intro x; cbn. rewrite (Eap10 Hg1 x). exact 1.
     + intros A' B' F Hf. apply H. now apply AFib_Fib.
   - intros [H2 H1] A' B' g Hg.
-    refine(LP_Retract (f:=f' f: `_ -> `_) _ (retract_id _) _).
+    refine(LP_Retract (f:=inf_fib f: `_ -> `_) _ (retract_id _) _).
     +  clear A' B' g Hg.
        assert (X : AFib (sigT (fiber f)) B pr1). {
          destruct H2 as [g Hg1 Hg2 Hg3].
@@ -1190,11 +1130,11 @@ Proof.
          rewrite concat_pp_p. refine (moveR_Vp _ _ _).
          revert y p. unshelve refine (paths_ind _ _ _).
          cbn. exact (concat_1p _ @ (concat_p1 _)^). }
-       specialize (H1 (` (sigT (fiber f))) B pr1 X (f' f) idmap E1); clear X.
+       specialize (H1 (` (sigT (fiber f))) B pr1 X (inf_fib f) idmap E1); clear X.
        destruct H1 as [Ɣ [H H']]; cbn in *.
        unshelve refine (Build_Retract idmap idmap Ɣ pr1 _ _ _ _); intro; try reflexivity.
        exact (Eap10 H' _). exact (Eap10 H^E _).
-    + now refine(LP_f'_F _ _ _ _ _).
+    + now refine(LP_inf_fib_F _ _ _ _ _).
 Defined.
 
 
