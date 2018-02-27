@@ -241,7 +241,7 @@ Local Open Scope morphism_scope.
 Reserved Notation "f ∘ g" (at level 40, left associativity).
 
 Record Category : Type :=
-  Build_Category' {
+  Build_Category {
       object :> Type;
       morphism : object -> object -> Type;
 
@@ -258,16 +258,8 @@ Record Category : Type :=
                              (m3 : morphism x3 x4),
           (m3 ∘ m2) ∘ m1 ≡ m3 ∘ (m2 ∘ m1);
 
-      associativity_sym : forall x1 x2 x3 x4
-                                 (m1 : morphism x1 x2)
-                                 (m2 : morphism x2 x3)
-                                 (m3 : morphism x3 x4),
-          m3 ∘ (m2 ∘ m1) ≡ (m3 ∘ m2) ∘ m1;
-
       left_identity : forall a b (f : morphism a b), identity b ∘ f ≡ f;
       right_identity : forall a b (f : morphism a b), f ∘ identity a ≡ f;
-
-      identity_identity : forall x, identity x ∘ identity x ≡ identity x
     }.
 
 Bind Scope category_scope with Category.
@@ -281,19 +273,19 @@ Arguments compose {!C%category} / {s d d'}%object (m1 m2)%morphism : rename.
 
 
 
-Definition Build_Category
-           object morphism compose identity
-           associativity left_identity right_identity
-  := @Build_Category'
-       object
-       morphism
-       compose
-       identity
-       associativity
-       (fun _ _ _ _ _ _ _ => Einverse (associativity _ _ _ _ _ _ _))
-       left_identity
-       right_identity
-       (fun _ => left_identity _ _ _).
+(* Definition Build_Category *)
+(*            object morphism compose identity *)
+(*            associativity left_identity right_identity *)
+(*   := @Build_Category' *)
+(*        object *)
+(*        morphism *)
+(*        compose *)
+(*        identity *)
+(*        associativity *)
+(*        (fun _ _ _ _ _ _ _ => Einverse (associativity _ _ _ _ _ _ _)) *)
+(*        left_identity *)
+(*        right_identity *)
+(*        (fun _ => left_identity _ _ _). *)
 
 
 Global Infix "∘" := compose : morphism_scope.
