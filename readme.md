@@ -45,6 +45,10 @@ Le cours tentera d'aborder les sujets suivants:
 
 <a charset="UTF-8" href="http://htmlpreview.github.com/?https://github.com/tabareau/lmfi_hott/blob/master/plan.html">Calendrier indicatif servant de ligne directrice</a>
 
+<a charset="UTF-8"
+href="http://htmlpreview.github.io/?https://github.com/tabareau/lmfi_hott/blob/master/articles.html">
+Liste des articles</a>
+
 <br>
 <br>
 <h2>Bibliographie</h2>
