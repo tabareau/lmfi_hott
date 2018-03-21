@@ -61,4 +61,10 @@ Liste des articles</a>
 <li><a href="http://www.cse.chalmers.se/~bengt/papers/hlcs.pdf">Martin-Löf’s Type Theory</a>,
 B. Nordström, K. Petersson and J. M. Smith, 2000</li>
 
+<li>Guilhem Jaber, Gabriel Lewertowski, Pierre-Marie Pédrot, Matthieu
+  Sozeau, Nicolas Tabareau, <a
+  href="https://hal.inria.fr/hal-01319066"> The Definitional Side of
+  the Forcing</a>, 2016.</li>
+
+
 </ul>
