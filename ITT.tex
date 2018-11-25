@@ -1009,15 +1009,15 @@ t, u, v, A, B, p, q & ::= & \ldots ~|~ \nu X.A ~|~ \appnu{f}{t}{c}{v}\\
 \\
 \seqr{\corecbeta}
      {\Gamma, X : \sort{l} \vdash A : \sort{l} \qquad \Gamma \vdash C : \sort{l} \qquad \Gamma, f : \mkimp{C}{\nu X. A}, c : C \vdash t : \Sub{A}{X}{\nu X. A} \qquad \Gamma \vdash v : C \qquad \mbox{$x$ guarded in $t$}}
-     {\Gamma \vdash \outnu{(\appnu{f}{t}{c}{v})} \reduce \Sub{\Sub{t}{c}{v}}{x\,c}{\appnu{f}{t}{c}{c}} : \Sub{A}{X}{\nu X. A}}
+     {\Gamma \vdash \outnu{(\appnu{f}{t}{c}{v})} \reduce \Sub{\Sub{t}{c}{v}}{f\,c}{\appnu{f}{t}{c}{c}} : \Sub{A}{X}{\nu X. A}}
 \\
 \\
 \mbox{\em observational rule}
 \\
 \\
 \seqr{\negeta}
-     {\Gamma \vdash C : \sort{l} \qquad \Gamma \vdash t : \nu X. A \qquad \Gamma \vdash v : C}
-     {\Gamma \vdash \appnu{f}{\outnu{t}}{c}{v} \reduce t : \nu X. A}
+     {\Gamma \vdash C : \sort{l} \qquad \Gamma, c : C \vdash t : \nu X. A \qquad \Gamma \vdash v : C}
+     {\Gamma \vdash \appnu{f}{\outnu{t}}{c}{v} \reduce \Sub{t}{c}{v} : \nu X. A}
 \\
 \\
 \mbox{\em congruence rules}
