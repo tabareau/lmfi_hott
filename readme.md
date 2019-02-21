@@ -49,8 +49,8 @@ Le cours tentera d'aborder les sujets suivants:
 
 Merci de choisir un article dans la liste ci-dessous et d'envoyer un
 courrier aux enseignants pour réserver l'article. Un rapport de 2 à 5
-pages sur l'article sera à rendre pour le vendredi 15 mars. Un exposé
-oral sera à présenter le mardi 19 mars.
+pages sur l'article sera à rendre pour le vendredi 15 mars 2019. Un
+exposé oral sera à présenter le mardi 19 mars 2019.
 
 Le rapport fera typiquement un résumé des points saillants de
 l'article, fera éventuellement un focus technique sur un ou plusieurs
